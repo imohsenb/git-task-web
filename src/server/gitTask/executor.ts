@@ -17,7 +17,11 @@ export interface RunGitTaskOptions {
    * there is no --repo flag. Must be absolute and already exist. */
   cwd: string;
   configDir: string;
-  /** argv after the binary, not including --format json — the executor appends that. */
+  /** argv after the binary: [subcommand, ...flags/positionals], not including --format
+   * json — the executor inserts that. Must NOT be inserted after args[0] by the caller:
+   * a `--` separator (needed before any positional that could start with '-') makes
+   * every following token positional, so --format json has to land before it — the
+   * executor owns that ordering, not callers. */
   args: string[];
   timeoutMs?: number;
   /** Used in error messages before we have a parsed `command` field to fall back on. */
@@ -72,7 +76,11 @@ export async function runGitTask<T>(dataSchema: ZodType<T>, opts: RunGitTaskOpti
     env.SSH_AUTH_SOCK = process.env.SSH_AUTH_SOCK;
   }
 
-  const fullArgs = [...args, "--format", "json"];
+  // --format json must land immediately after the subcommand, before any `--`
+  // separator a caller used ahead of a free-text positional — `--` makes clap treat
+  // everything after it as positional, which would swallow a trailing --format json.
+  const [subcommand, ...rest] = args;
+  const fullArgs = [subcommand, "--format", "json", ...rest];
 
   let result;
   try {

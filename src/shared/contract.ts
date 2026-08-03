@@ -99,13 +99,13 @@ export interface TaskJson {
 export interface LsJson {
   scope: { mode: "here" | "registry"; repo_count: number; branch: string | null };
   filters_applied: {
-    status?: string;
-    assignee?: string;
-    label?: string;
-    kind?: string;
-    parent?: string;
-    mine?: boolean;
-    deleted?: boolean;
+    status: string | null;
+    assignee: string | null;
+    label: string | null;
+    kind: string | null;
+    parent: string | null;
+    mine: boolean;
+    deleted: boolean;
   };
   repos: {
     name: string;
@@ -230,4 +230,15 @@ export interface WhoamiJson {
   repo?: IdentityInfoJson;
   global: IdentityInfoJson;
   effective: IdentityInfoJson;
+}
+
+/** git-task-web's own /api/meta shape — not part of the CLI contract. */
+export interface MetaJson {
+  name: string;
+  version: string;
+  mode: "dev" | "prod";
+  dataDir: string;
+  configDir: string;
+  cli: { bin: string; version: string };
+  identity: IdentityInfoJson;
 }

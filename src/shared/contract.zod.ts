@@ -111,13 +111,13 @@ export const lsJsonSchema = z.object({
     branch: z.string().nullable(),
   }),
   filters_applied: z.object({
-    status: z.string().optional(),
-    assignee: z.string().optional(),
-    label: z.string().optional(),
-    kind: z.string().optional(),
-    parent: z.string().optional(),
-    mine: z.boolean().optional(),
-    deleted: z.boolean().optional(),
+    status: z.string().nullable(),
+    assignee: z.string().nullable(),
+    label: z.string().nullable(),
+    kind: z.string().nullable(),
+    parent: z.string().nullable(),
+    mine: z.boolean(),
+    deleted: z.boolean(),
   }),
   repos: z.array(
     z.object({

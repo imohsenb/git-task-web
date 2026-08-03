@@ -78,7 +78,10 @@ export interface TaskJson {
 ```ts
 interface LsJson {
   scope: { mode: "here" | "registry"; repo_count: number; branch: string | null };
-  filters_applied: { status?, assignee?, label?, kind?, parent?, mine?, deleted? };
+  filters_applied: {
+    status: string | null; assignee: string | null; label: string | null;
+    kind: string | null; parent: string | null; mine: boolean; deleted: boolean;
+  };
   repos: { name: string; project: string; path: string; key: string; branch: string | null; tasks: TaskJson[] }[];
   contributors: Record<string, string>;   // email -> display name
   statuses: string[];                     // distinct observed, sorted

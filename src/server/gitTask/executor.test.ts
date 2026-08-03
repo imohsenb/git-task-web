@@ -14,17 +14,18 @@ const bin = resolveBin();
 describe.skipIf(!bin)("executor against a real git-task binary", () => {
   it("whoami reports repo + global + effective identity when git config is set", async () => {
     const repo = TestRepo.create();
-    const identity = await whoami({ bin: bin!, cwd: repo.path, configDir: repo.configDir });
+    const { data: identity, warnings } = await whoami({ bin: bin!, cwd: repo.path, configDir: repo.configDir });
 
     expect(identity.repo?.ok).toBe(true);
     expect(identity.repo?.email).toBe("test@example.com");
     expect(identity.effective.email).toBe("test@example.com");
     expect(identity.effective.source).toBe("repo");
+    expect(warnings).toEqual([]);
   });
 
   it("whoami reports ok:false with source 'none' when no identity is configured anywhere", async () => {
     const repo = TestRepo.bare();
-    const identity = await whoami({
+    const { data: identity } = await whoami({
       bin: bin!,
       cwd: repo.path,
       configDir: repo.configDir,
