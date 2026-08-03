@@ -71,11 +71,70 @@
   --width-drawer: 480px;
 }
 
+/*
+ * Dark theme — redefines the exact same custom-property names @theme just
+ * registered, so every utility built from them (bg-canvas, text-ink-1, bg-
+ * success-tint, shadow-card, ...) re-themes with zero dark: variants anywhere in
+ * the component tree. Same hue channels as light per bucket (250 info, 80 warn,
+ * 25 danger, 150 success, 300 accent, 265 neutral) — only lightness/chroma move —
+ * so a status is still the same color family in both themes, just inverted for a
+ * dark surface: tint darkens into a tinted fill, ink lightens to stay readable on it.
+ *
+ * Applied via `[data-theme]` on <html>, set once at boot by the inline script in
+ * index.html (localStorage override > OS prefers-color-scheme) and by
+ * lib/theme.ts's toggle thereafter — not a `@media` query here, so each theme's
+ * palette is written exactly once instead of duplicated across an auto/override split.
+ */
+:root[data-theme="dark"] {
+  --color-canvas: oklch(0.19 0.006 265);
+  --color-shell: oklch(0.22 0.007 265);
+  --color-surface: oklch(0.245 0.007 265);
+  --color-surface-sunk: oklch(0.17 0.006 265);
+  --color-line: oklch(0.32 0.007 265);
+  --color-line-strong: oklch(0.40 0.009 265);
+
+  --color-ink-1: oklch(0.95 0.004 265);
+  --color-ink-2: oklch(0.82 0.007 265);
+  --color-ink-3: oklch(0.65 0.009 265);
+  --color-ink-4: oklch(0.48 0.009 265);
+
+  --color-brand: oklch(0.68 0.19 262);
+  --color-brand-hover: oklch(0.74 0.17 262);
+  --color-brand-soft: oklch(0.30 0.08 262);
+  --color-brand-ink: oklch(0.80 0.14 262);
+  --color-brand-focus: oklch(0.68 0.19 262 / 0.45);
+
+  --color-neutral-tint: oklch(0.30 0.006 265);
+  --color-neutral-ink: oklch(0.78 0.01 265);
+  --color-info-tint: oklch(0.30 0.05 250);
+  --color-info-ink: oklch(0.78 0.12 250);
+  --color-warn-tint: oklch(0.30 0.06 80);
+  --color-warn-ink: oklch(0.80 0.13 80);
+  --color-danger-tint: oklch(0.30 0.07 25);
+  --color-danger-ink: oklch(0.78 0.15 25);
+  --color-success-tint: oklch(0.30 0.06 150);
+  --color-success-ink: oklch(0.78 0.13 150);
+  --color-accent-tint: oklch(0.30 0.06 300);
+  --color-accent-ink: oklch(0.78 0.14 300);
+
+  --shadow-shell: 0 1px 2px oklch(0 0 0 / 0.3), 0 20px 40px -20px oklch(0 0 0 / 0.5);
+  --shadow-card: 0 1px 2px oklch(0 0 0 / 0.3), 0 8px 20px -12px oklch(0 0 0 / 0.4);
+  --shadow-lift: 0 4px 10px oklch(0 0 0 / 0.35), 0 16px 32px -12px oklch(0 0 0 / 0.5);
+  --shadow-pop: 0 8px 16px oklch(0 0 0 / 0.4), 0 24px 48px -16px oklch(0 0 0 / 0.55);
+}
+
 @layer base {
   html {
     font-family: var(--font-sans);
     background: var(--color-canvas);
     color: var(--color-ink-1);
+    color-scheme: light dark;
+  }
+  html[data-theme="dark"] {
+    color-scheme: dark;
+  }
+  html[data-theme="light"] {
+    color-scheme: light;
   }
   body {
     min-height: 100vh;
