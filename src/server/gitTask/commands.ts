@@ -46,6 +46,8 @@ export interface LsFilters {
   status?: string;
   assignee?: string;
   label?: string;
+  fixedVersion?: string;
+  affectedVersion?: string;
   kind?: string;
   parent?: string;
   mine?: boolean;
@@ -63,6 +65,8 @@ function lsFilterArgs(filters: LsFilters = {}): string[] {
   if (filters.status !== undefined) args.push(`--status=${filters.status}`);
   if (filters.assignee !== undefined) args.push(`--assignee=${filters.assignee}`);
   if (filters.label !== undefined) args.push(`--label=${filters.label}`);
+  if (filters.fixedVersion !== undefined) args.push(`--fixed-version=${filters.fixedVersion}`);
+  if (filters.affectedVersion !== undefined) args.push(`--affected-version=${filters.affectedVersion}`);
   if (filters.kind !== undefined) args.push(`--kind=${filters.kind}`);
   if (filters.parent !== undefined) args.push(`--parent=${filters.parent}`);
   if (filters.mine) args.push("--mine");
@@ -138,6 +142,8 @@ export interface NewTaskInput {
   description: string;
   assignee?: string;
   labels?: string[];
+  fixedVersions?: string[];
+  affectedVersions?: string[];
   priority?: Priority;
   due?: string;
   milestone?: string;
@@ -149,6 +155,8 @@ export function newTask(ctx: GitTaskContext, input: NewTaskInput): Promise<GitTa
   const args: string[] = ["new", `--kind=${input.kind}`, `--desc=${input.description}`];
   if (input.assignee !== undefined) args.push(`--assignee=${input.assignee}`);
   for (const label of input.labels ?? []) args.push(`--label=${label}`);
+  for (const version of input.fixedVersions ?? []) args.push(`--fixed-version=${version}`);
+  for (const version of input.affectedVersions ?? []) args.push(`--affected-version=${version}`);
   if (input.priority !== undefined) args.push(`--priority=${input.priority}`);
   if (input.due !== undefined) args.push(`--due=${input.due}`);
   if (input.milestone !== undefined) args.push(`--milestone=${input.milestone}`);

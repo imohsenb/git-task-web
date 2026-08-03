@@ -34,6 +34,8 @@ export interface LsFilters {
   status?: string;
   assignee?: string;
   label?: string;
+  fixedVersion?: string;
+  affectedVersion?: string;
   kind?: string;
   parent?: string;
   mine?: boolean;

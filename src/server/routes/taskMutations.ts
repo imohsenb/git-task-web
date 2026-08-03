@@ -44,6 +44,8 @@ const newTaskBodySchema = z.object({
   description: z.string().max(TEXT_MAX_LEN),
   assignee: z.string().min(1).max(NAME_MAX_LEN).optional(),
   labels: z.array(z.string().min(1).max(LABEL_MAX_LEN)).max(50).optional(),
+  fixedVersions: z.array(z.string().min(1).max(LABEL_MAX_LEN)).max(50).optional(),
+  affectedVersions: z.array(z.string().min(1).max(LABEL_MAX_LEN)).max(50).optional(),
   priority: prioritySchema.optional(),
   due: z.string().min(1).max(NAME_MAX_LEN).optional(),
   milestone: z.string().min(1).max(NAME_MAX_LEN).optional(),

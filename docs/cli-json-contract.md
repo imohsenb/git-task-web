@@ -63,6 +63,8 @@ export interface TaskJson {
   assignee: string | null; assignee_name: string | null;
   reporter: string;        reporter_name: string;
   labels: string[];                 // sorted
+  fixed_versions: string[];         // sorted, deduped; set-at-creation only, no edit/add/rm CLI path yet
+  affected_versions: string[];      // sorted, deduped; set-at-creation only, no edit/add/rm CLI path yet
   due: string | null;               // opaque, unparsed
   parent: string | null; parent_display_id: string | null;
   links: LinkJson[]; milestone: string | null; comments: CommentJson[];
@@ -80,6 +82,7 @@ interface LsJson {
   scope: { mode: "here" | "registry"; repo_count: number; branch: string | null };
   filters_applied: {
     status: string | null; assignee: string | null; label: string | null;
+    fixed_version: string | null; affected_version: string | null;
     kind: string | null; parent: string | null; mine: boolean; deleted: boolean;
   };
   repos: { name: string; project: string; path: string; key: string; branch: string | null; tasks: TaskJson[] }[];

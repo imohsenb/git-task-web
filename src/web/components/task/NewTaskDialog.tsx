@@ -29,18 +29,13 @@ export function NewTaskDialog({ repo, onClose }: { repo: string; onClose: () => 
   const [due, setDue] = useState("");
   const [milestone, setMilestone] = useState("");
   const [parent, setParent] = useState("");
-  const [labelInput, setLabelInput] = useState("");
   const [labels, setLabels] = useState<string[]>([]);
+  const [fixedVersions, setFixedVersions] = useState<string[]>([]);
+  const [affectedVersions, setAffectedVersions] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const required = fieldsData?.data.fields;
   const epics = epicsData?.data.repos[0]?.tasks ?? [];
-
-  function addLabelFromInput() {
-    const value = labelInput.trim();
-    if (value && !labels.includes(value)) setLabels([...labels, value]);
-    setLabelInput("");
-  }
 
   function validate(): Record<string, string> {
     const next: Record<string, string> = {};
@@ -64,6 +59,8 @@ export function NewTaskDialog({ repo, onClose }: { repo: string; onClose: () => 
       description: description.trim(),
       assignee: assignee.trim() || undefined,
       labels: labels.length > 0 ? labels : undefined,
+      fixedVersions: fixedVersions.length > 0 ? fixedVersions : undefined,
+      affectedVersions: affectedVersions.length > 0 ? affectedVersions : undefined,
       priority: priority || undefined,
       due: due.trim() || undefined,
       milestone: milestone.trim() || undefined,
@@ -159,36 +156,17 @@ export function NewTaskDialog({ repo, onClose }: { repo: string; onClose: () => 
         </div>
 
         <Field label="Labels">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {labels.map((label) => (
-              <span key={label} className="flex items-center gap-1 rounded-pill bg-neutral-tint px-2 py-0.5 text-micro text-neutral-ink">
-                {label}
-                <button
-                  type="button"
-                  onClick={() => setLabels(labels.filter((l) => l !== label))}
-                  className="text-ink-4 hover:text-ink-1"
-                  aria-label={`Remove label ${label}`}
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-            <input
-              type="text"
-              value={labelInput}
-              onChange={(e) => setLabelInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === ",") {
-                  e.preventDefault();
-                  addLabelFromInput();
-                }
-              }}
-              onBlur={addLabelFromInput}
-              placeholder="type, then Enter"
-              className="min-w-[8rem] flex-1 rounded-control border border-line bg-surface px-2 py-1 text-sm text-ink-1 focus:border-brand focus:outline-none"
-            />
-          </div>
+          <TagInput values={labels} onChange={setLabels} placeholder="type, then Enter" />
         </Field>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Fixed in version(s)">
+            <TagInput values={fixedVersions} onChange={setFixedVersions} placeholder="e.g. 1.2.0" />
+          </Field>
+          <Field label="Affects version(s)">
+            <TagInput values={affectedVersions} onChange={setAffectedVersions} placeholder="e.g. 1.0.0" />
+          </Field>
+        </div>
 
         {createTask.isError && <p className="text-sm text-danger-ink">{(createTask.error as Error).message}</p>}
 
@@ -206,6 +184,59 @@ export function NewTaskDialog({ repo, onClose }: { repo: string; onClose: () => 
         </div>
       </form>
     </Modal>
+  );
+}
+
+/** Chip-list input shared by Labels/Fixed-in/Affects — type a value, Enter or comma
+ * commits it as a chip. git-task's `new --fixed-version`/`--affected-version` are
+ * repeatable flags just like `--label`, so the interaction matches labels exactly. */
+function TagInput({
+  values,
+  onChange,
+  placeholder,
+}: {
+  values: string[];
+  onChange: (next: string[]) => void;
+  placeholder: string;
+}) {
+  const [input, setInput] = useState("");
+
+  function commit() {
+    const value = input.trim();
+    if (value && !values.includes(value)) onChange([...values, value]);
+    setInput("");
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 rounded-control border border-line bg-surface px-2 py-1.5 focus-within:border-brand">
+      {values.map((value) => (
+        <span key={value} className="flex items-center gap-1 rounded-pill bg-neutral-tint px-2 py-0.5 text-micro text-neutral-ink">
+          {value}
+          <button
+            type="button"
+            onClick={() => onChange(values.filter((v) => v !== value))}
+            className="text-ink-4 hover:text-ink-1"
+            aria-label={`Remove ${value}`}
+          >
+            ×
+          </button>
+        </span>
+      ))}
+      <input
+        type="text"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === ",") {
+            e.preventDefault();
+            commit();
+          }
+        }}
+        onBlur={commit}
+        placeholder={placeholder}
+        className="min-w-[6rem] flex-1 bg-transparent text-sm text-ink-1 focus:outline-none"
+      />
+    </div>
   );
 }
 

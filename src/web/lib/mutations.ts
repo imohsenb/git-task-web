@@ -67,6 +67,8 @@ export interface NewTaskInput {
   description: string;
   assignee?: string;
   labels?: string[];
+  fixedVersions?: string[];
+  affectedVersions?: string[];
   priority?: Priority;
   due?: string;
   milestone?: string;

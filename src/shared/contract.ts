@@ -84,6 +84,8 @@ export interface TaskJson {
   reporter: string;
   reporter_name: string;
   labels: string[];
+  fixed_versions: string[];
+  affected_versions: string[];
   due: string | null;
   parent: string | null;
   parent_display_id: string | null;
@@ -102,6 +104,8 @@ export interface LsJson {
     status: string | null;
     assignee: string | null;
     label: string | null;
+    fixed_version: string | null;
+    affected_version: string | null;
     kind: string | null;
     parent: string | null;
     mine: boolean;

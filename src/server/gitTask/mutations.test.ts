@@ -43,6 +43,8 @@ describe.skipIf(!bin)("mutation commands against a real git-task binary", () => 
       description: "d",
       assignee: "a@b.com",
       labels: ["x", "-y"],
+      fixedVersions: ["1.2.0", "-1.2.1"],
+      affectedVersions: ["1.0.0", "-1.1.0"],
       priority: "high",
       due: "2026-09-01",
       milestone: "v1",
@@ -50,6 +52,8 @@ describe.skipIf(!bin)("mutation commands against a real git-task binary", () => 
     });
     expect(data.task.assignee).toBe("a@b.com");
     expect(data.task.labels).toEqual(["-y", "x"]);
+    expect(data.task.fixed_versions).toEqual(["-1.2.1", "1.2.0"]);
+    expect(data.task.affected_versions).toEqual(["-1.1.0", "1.0.0"]);
     expect(data.task.priority).toBe("high");
     expect(data.task.due).toBe("2026-09-01");
     expect(data.task.milestone).toBe("v1");

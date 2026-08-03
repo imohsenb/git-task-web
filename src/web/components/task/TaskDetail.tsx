@@ -117,8 +117,47 @@ export function TaskDetail({ repo, task }: { repo: string; task: TaskJson }) {
       </dl>
 
       <LabelsSection repo={repo} task={task} />
+      <VersionsSection task={task} />
       <LinksSection repo={repo} task={task} />
       <CommentsSection repo={repo} task={task} />
+    </div>
+  );
+}
+
+/**
+ * Read-only: the CLI's `--fixed-version`/`--affected-version` are `new`-time-only
+ * flags — `edit` has no matching add/rm path yet, so unlike labels there's nothing
+ * to wire a mutation to.
+ */
+function VersionsSection({ task }: { task: TaskJson }) {
+  if (task.fixed_versions.length === 0 && task.affected_versions.length === 0) return null;
+
+  return (
+    <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+      {task.fixed_versions.length > 0 && (
+        <div>
+          <h3 className="mb-2 text-micro uppercase text-ink-4">Fixed in</h3>
+          <div className="flex flex-wrap gap-1.5">
+            {task.fixed_versions.map((version) => (
+              <Pill key={version} sem="success">
+                {version}
+              </Pill>
+            ))}
+          </div>
+        </div>
+      )}
+      {task.affected_versions.length > 0 && (
+        <div>
+          <h3 className="mb-2 text-micro uppercase text-ink-4">Affects</h3>
+          <div className="flex flex-wrap gap-1.5">
+            {task.affected_versions.map((version) => (
+              <Pill key={version} sem="danger">
+                {version}
+              </Pill>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
