@@ -32,7 +32,7 @@ export function TaskDrawer() {
         <div className="p-6">
           {isLoading && <p className="text-sm text-ink-4">Loading…</p>}
           {error && <p className="text-sm text-danger-ink">{error.message}</p>}
-          {data && <TaskDetail task={data.data} />}
+          {data && <TaskDetail repo={repo} task={data.data} />}
         </div>
       </div>
     </div>

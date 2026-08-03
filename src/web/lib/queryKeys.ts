@@ -5,4 +5,5 @@ export const queryKeys = {
   repoTasks: (repo: string, filters: LsFilters) => ["tasks", repo, filters] as const,
   allTasks: (filters: LsFilters & { project?: string }) => ["tasksAll", filters] as const,
   task: (repo: string, displayId: string) => ["task", repo, displayId] as const,
+  fields: (repo: string) => ["fields", repo] as const,
 };

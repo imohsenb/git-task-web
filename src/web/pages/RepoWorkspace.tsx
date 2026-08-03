@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { NavLink, Outlet, useParams } from "react-router-dom";
 import { Breadcrumb } from "../components/shell/Breadcrumb";
 import { MetaBlock } from "../components/meta/MetaBlock";
+import { NewTaskDialog } from "../components/task/NewTaskDialog";
 import { useRegistry } from "../lib/queries";
 
 const TABS = [
@@ -13,6 +15,7 @@ export function RepoWorkspace() {
   const { repo = "" } = useParams();
   const { data } = useRegistry();
   const repoEntry = data?.data.repos.find((r) => r.name === repo);
+  const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
 
   return (
     <div>
@@ -50,15 +53,16 @@ export function RepoWorkspace() {
         <div className="flex-1" />
         <button
           type="button"
-          disabled
-          title="Creating tasks lands in a later phase"
-          className="mb-2 cursor-not-allowed rounded-control bg-brand/50 px-3 py-1.5 text-sm font-medium text-white"
+          onClick={() => setIsNewTaskOpen(true)}
+          className="mb-2 rounded-control bg-brand px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
         >
           + Add new task
         </button>
       </div>
 
       <Outlet />
+
+      {isNewTaskOpen && <NewTaskDialog repo={repo} onClose={() => setIsNewTaskOpen(false)} />}
     </div>
   );
 }

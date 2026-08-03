@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiGet, type LsFilters } from "./api";
 import { queryKeys } from "./queryKeys";
-import type { LsJson, MetaJson, RegistryJson, TaskJson } from "../../shared/contract";
+import type { LsJson, MetaJson, RegistryJson, RepoConfigJson, TaskJson } from "../../shared/contract";
 
 export function useMeta() {
   return useQuery({
@@ -43,5 +43,16 @@ export function useTask(repo: string, displayId: string) {
     queryFn: () => apiGet<TaskJson>(`/repos/${encodeURIComponent(repo)}/tasks/${encodeURIComponent(displayId)}`),
     staleTime: 10_000,
     enabled: repo.length > 0 && displayId.length > 0,
+  });
+}
+
+/** NewTaskDialog's required-field schema — so a missing required field blocks
+ * submission in the form instead of surfacing as a `new.rs:76` CLI error. */
+export function useFields(repo: string) {
+  return useQuery({
+    queryKey: queryKeys.fields(repo),
+    queryFn: () => apiGet<RepoConfigJson>(`/repos/${encodeURIComponent(repo)}/fields`),
+    staleTime: 60_000,
+    enabled: repo.length > 0,
   });
 }

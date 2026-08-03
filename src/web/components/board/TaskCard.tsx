@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import { useDraggable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 import { MessageSquare, Link2, ListTree } from "lucide-react";
 import type { TaskJson } from "../../../shared/contract";
 import { Pill } from "../ui/Pill";
@@ -13,18 +15,51 @@ interface CardPerson extends AvatarInfo {
   name: string | null;
 }
 
+/** Draggable card in a board column — drag payload carries `displayId`/`status` so
+ * RepoBoard's onDragEnd can call useSetStatus without a lookup. */
 export function TaskCard({ repo, task, childCount }: { repo: string; task: TaskJson; childCount?: number }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: task.id,
+    data: { displayId: task.display_id, status: task.status },
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      style={{ transform: transform ? CSS.Translate.toString(transform) : undefined, touchAction: "none" }}
+      className={["cursor-grab touch-none active:cursor-grabbing", isDragging ? "opacity-40" : ""].join(" ")}
+    >
+      <Link
+        to={`/r/${encodeURIComponent(repo)}/board/t/${encodeURIComponent(task.display_id)}`}
+        className={[
+          "block rounded-card bg-surface p-3 shadow-card transition-shadow hover:shadow-lift",
+          task.deleted ? "opacity-55" : "",
+        ].join(" ")}
+      >
+        <CardContent task={task} childCount={childCount} />
+      </Link>
+    </div>
+  );
+}
+
+/** Non-interactive clone rendered inside `<DragOverlay>` — sharing an `id` with the
+ * real draggable in the same `useDraggable` call would register it twice. */
+export function TaskCardGhost({ task, childCount }: { task: TaskJson; childCount?: number }) {
+  return (
+    <div className="rounded-card bg-surface p-3 shadow-lift">
+      <CardContent task={task} childCount={childCount} />
+    </div>
+  );
+}
+
+function CardContent({ task, childCount }: { task: TaskJson; childCount?: number }) {
   const people = cardPeople(task);
   const extraLabels = task.labels.length - MAX_LABELS;
 
   return (
-    <Link
-      to={`/r/${encodeURIComponent(repo)}/board/t/${encodeURIComponent(task.display_id)}`}
-      className={[
-        "block rounded-card bg-surface p-3 shadow-card transition-shadow hover:shadow-lift",
-        task.deleted ? "opacity-55" : "",
-      ].join(" ")}
-    >
+    <>
       <div className="flex items-center gap-1.5">
         {task.priority && <Pill sem={prioritySemantic(task.priority)}>{task.priority}</Pill>}
         <Pill sem={kindSemantic(task.kind)}>{task.kind}</Pill>
@@ -83,7 +118,7 @@ export function TaskCard({ repo, task, childCount }: { repo: string; task: TaskJ
           </span>
         </div>
       </div>
-    </Link>
+    </>
   );
 }
 

@@ -1,26 +1,13 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { lsAll, lsProject, show, type LsFilters } from "../gitTask/commands.js";
+import { fields, lsAll, lsProject, show, type LsFilters } from "../gitTask/commands.js";
 import { cachedLsHere } from "../gitTask/lsCache.js";
 import { resolveRepo } from "../gitTask/registry.js";
 import { dataDirContext, repoContext } from "../gitTask/context.js";
 import { taskKindSchema } from "../../shared/contract.zod.js";
+import { booleanQueryParam, NAME_MAX_LEN, repoParamSchema, repoTaskParamSchema } from "./paramSchemas.js";
 import type { ResolvedEnv } from "../env.js";
-
-/** Query strings arrive as strings; this normalises the handful of truthy/falsy
- * spellings a browser or curl might send ("", "1", "true") into a real boolean
- * without the z.coerce.boolean() footgun (which treats "false" as truthy — any
- * non-empty string coerces to true). Anything else fails validation instead of
- * silently guessing. */
-const booleanQueryParam = z.preprocess((value) => {
-  if (value === undefined) return undefined;
-  if (value === "" || value === "true" || value === "1") return true;
-  if (value === "false" || value === "0") return false;
-  return value;
-}, z.boolean().optional());
-
-const NAME_MAX_LEN = 200;
 
 const lsQuerySchema = z.object({
   status: z.string().min(1).max(NAME_MAX_LEN).optional(),
@@ -35,14 +22,6 @@ const lsQuerySchema = z.object({
 
 const tasksAllQuerySchema = lsQuerySchema.extend({
   project: z.string().min(1).max(NAME_MAX_LEN).optional(),
-});
-
-const repoParamSchema = z.object({
-  name: z.string().min(1).max(NAME_MAX_LEN),
-});
-
-const repoTaskParamSchema = repoParamSchema.extend({
-  id: z.string().min(1).max(NAME_MAX_LEN),
 });
 
 function toFilters(query: z.infer<typeof lsQuerySchema>): LsFilters {
@@ -85,6 +64,19 @@ export function registerTasksRoutes(rawApp: FastifyInstance, env: ResolvedEnv) {
     async (request) => {
       const repo = await resolveRepo(dataDirContext(env), request.params.name);
       const { data, warnings } = await show(repoContext(env, repo.path), request.params.id);
+      return { data, warnings };
+    },
+  );
+
+  // `fields` (not the `config show` the plan's prose assumes — verified live against
+  // the real binary) is the required-field schema NewTaskDialog validates against
+  // before submitting, so it fails in the form instead of at new.rs:76.
+  app.get(
+    "/api/repos/:name/fields",
+    { schema: { params: repoParamSchema } },
+    async (request) => {
+      const repo = await resolveRepo(dataDirContext(env), request.params.name);
+      const { data, warnings } = await fields(repoContext(env, repo.path));
       return { data, warnings };
     },
   );

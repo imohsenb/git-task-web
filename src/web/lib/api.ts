@@ -79,3 +79,39 @@ export async function apiGet<T>(path: string, params?: QueryParams): Promise<Api
 
   return body as ApiSuccess<T>;
 }
+
+/** Shared by every write helper below. A 204 (e.g. `edit`/`epic rm` with nothing to
+ * change — §3.5) resolves to `null`, distinct from a real ApiSuccess<T>. */
+async function apiWrite<T>(
+  method: "POST" | "PATCH" | "PUT" | "DELETE",
+  path: string,
+  body?: unknown,
+  params?: QueryParams,
+): Promise<ApiSuccess<T> | null> {
+  const res = await fetch(`/api${path}${buildQuery(params)}`, {
+    method,
+    headers: body !== undefined ? { "Content-Type": "application/json", Accept: "application/json" } : { Accept: "application/json" },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+
+  if (res.status === 204) return null;
+  const parsedBody = await parseBody(res);
+
+  if (!res.ok) {
+    if (parsedBody && typeof parsedBody === "object" && "error" in parsedBody) {
+      throw new ApiError(res.status, parsedBody as ApiErrorBody);
+    }
+    throw new ApiError(res.status, {
+      ok: false,
+      error: { kind: "internal", message: `request failed with status ${res.status}`, causes: [] },
+    });
+  }
+
+  return parsedBody as ApiSuccess<T>;
+}
+
+export const apiPost = <T>(path: string, body?: unknown): Promise<ApiSuccess<T> | null> => apiWrite("POST", path, body);
+export const apiPatch = <T>(path: string, body?: unknown): Promise<ApiSuccess<T> | null> => apiWrite("PATCH", path, body);
+export const apiPut = <T>(path: string, body?: unknown): Promise<ApiSuccess<T> | null> => apiWrite("PUT", path, body);
+export const apiDelete = <T>(path: string, params?: QueryParams): Promise<ApiSuccess<T> | null> =>
+  apiWrite("DELETE", path, undefined, params);

@@ -9,6 +9,7 @@ import { registerErrorHandler } from "./routes/errorHandler.js";
 import { registerMetaRoute } from "./routes/meta.js";
 import { registerRegistryRoute } from "./routes/registry.js";
 import { registerTasksRoutes } from "./routes/tasks.js";
+import { registerTaskMutationsRoutes } from "./routes/taskMutations.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -49,6 +50,7 @@ export async function buildServer(opts: BuildServerOptions = {}) {
   registerMetaRoute(app, env, { webVersion: version, mode });
   registerRegistryRoute(app, env);
   registerTasksRoutes(app, env);
+  registerTaskMutationsRoutes(app, env);
 
   if (serveStatic) {
     await registerStatic(app);
