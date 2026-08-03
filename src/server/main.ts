@@ -1,8 +1,10 @@
 import Fastify from "fastify";
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { registerStatic } from "./static.js";
+import { resolveEnv } from "./env.js";
+import { registerMetaRoute } from "./routes/meta.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -23,14 +25,13 @@ export async function buildServer(opts: BuildServerOptions = {}) {
     logger: { level: process.env.LOG_LEVEL ?? "info" },
   });
 
+  const env = resolveEnv();
+  mkdirSync(env.dataDir, { recursive: true });
+
   const version = readPackageVersion();
   const mode = process.env.NODE_ENV === "production" ? "prod" : "dev";
 
-  app.get("/api/meta", async () => ({
-    name: "git-task-web",
-    version,
-    mode,
-  }));
+  registerMetaRoute(app, env, { webVersion: version, mode });
 
   if (serveStatic) {
     await registerStatic(app);

@@ -16,7 +16,7 @@
     "dev": "concurrently -n server,web -c blue,green \"tsx watch src/server/main.ts\" \"vite\"",
     "dev:server": "tsx watch src/server/main.ts",
     "build": "npm run build:server && npm run build:web",
-    "build:server": "tsc -p tsconfig.server.json",
+    "build:server": "tsc -p tsconfig.server.build.json",
     "build:web": "vite build",
     "start": "node dist/server/cli.js",
     "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.web.json --noEmit",
