@@ -66,8 +66,9 @@ export const commentJsonSchema = z.object({
 
 export const linkJsonSchema = z.object({
   kind: linkKindSchema,
-  target: z.string(),
+  target: z.string().nullable(),
   target_display_id: z.string(),
+  target_repo: z.string().nullable(),
 });
 
 export const opEnvelopeJsonSchema = z

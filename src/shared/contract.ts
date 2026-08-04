@@ -59,8 +59,12 @@ export interface CommentJson {
 
 export interface LinkJson {
   kind: LinkKind;
-  target: string;
+  /** null for a cross-repo link — the target task isn't a local git object, only
+   * addressable via target_repo + target_display_id. */
+  target: string | null;
   target_display_id: string;
+  /** Absolute path of the target repo, or null for a same-repo link. */
+  target_repo: string | null;
 }
 
 export interface OpEnvelopeJson {

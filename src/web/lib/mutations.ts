@@ -240,8 +240,8 @@ export function useClearParent(repo: string, id: string) {
 export function useAddLink(repo: string, id: string) {
   const { onError, applyTask } = useMutationEffects(repo);
   return useMutation({
-    mutationFn: ({ kind, target }: { kind: LinkKind; target: string }) =>
-      apiPost<MutationJson>(taskPath(repo, id, "/links"), { kind, target }),
+    mutationFn: ({ kind, target, targetRepo }: { kind: LinkKind; target: string; targetRepo?: string }) =>
+      apiPost<MutationJson>(taskPath(repo, id, "/links"), { kind, target, targetRepo }),
     onSuccess: (result) => {
       if (result) applyTask(result.data.task);
     },
@@ -252,8 +252,11 @@ export function useAddLink(repo: string, id: string) {
 export function useRemoveLink(repo: string, id: string) {
   const { onError, applyTask } = useMutationEffects(repo);
   return useMutation({
-    mutationFn: ({ kind, target }: { kind: LinkKind; target: string }) =>
-      apiDelete<MutationJson>(taskPath(repo, id, `/links/${kind}/${encodeURIComponent(target)}`)),
+    mutationFn: ({ kind, target, targetRepo }: { kind: LinkKind; target: string; targetRepo?: string }) =>
+      apiDelete<MutationJson>(
+        taskPath(repo, id, `/links/${kind}/${encodeURIComponent(target)}`),
+        targetRepo ? { repo: targetRepo } : undefined,
+      ),
     onSuccess: (result) => {
       if (result) applyTask(result.data.task);
     },

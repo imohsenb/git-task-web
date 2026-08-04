@@ -46,7 +46,9 @@ export type Priority = "low" | "medium" | "high";
 export type LinkKind = "blocks" | "relates" | "dup";
 
 export interface CommentJson { id: number; author: string; author_name: string; timestamp: number; text: string; edited: boolean }
-export interface LinkJson    { kind: LinkKind; target: string; target_display_id: string }
+export interface LinkJson    { kind: LinkKind; target: string | null; target_display_id: string; target_repo: string | null }
+// target is null and target_repo is the target repo's absolute path for a cross-repo
+// link (`link ... add --repo <name|path|url>`); both null/absent-equivalent for same-repo.
 
 export interface OpEnvelopeJson {
   author: { name: string; email: string };

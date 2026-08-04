@@ -151,10 +151,27 @@ describe.skipIf(!bin)("mutation commands against a real git-task binary", () => 
 
     const linked = await addLink(ctx, a.task.display_id, "blocks", b.task.display_id);
     expect(linked.data.task.links).toEqual([
-      { kind: "blocks", target: b.task.id, target_display_id: b.task.display_id },
+      { kind: "blocks", target: b.task.id, target_display_id: b.task.display_id, target_repo: null },
     ]);
 
     const unlinked = await removeLink(ctx, a.task.display_id, "blocks", b.task.display_id);
+    expect(unlinked.data.task.links).toEqual([]);
+  });
+
+  it("addLink with a targetRepo path round-trips a cross-repo link", async () => {
+    const repoA = TestRepo.create();
+    const repoB = TestRepo.create();
+    const ctxA = ctxFor(repoA);
+    const ctxB = ctxFor(repoB);
+    const { data: a } = await newTask(ctxA, { title: "a", kind: "task", description: "d" });
+    const { data: b } = await newTask(ctxB, { title: "b", kind: "task", description: "d" });
+
+    const linked = await addLink(ctxA, a.task.display_id, "relates", b.task.display_id, repoB.path);
+    expect(linked.data.task.links).toEqual([
+      { kind: "relates", target: null, target_display_id: b.task.display_id, target_repo: repoB.path },
+    ]);
+
+    const unlinked = await removeLink(ctxA, a.task.display_id, "relates", b.task.display_id, repoB.path);
     expect(unlinked.data.task.links).toEqual([]);
   });
 

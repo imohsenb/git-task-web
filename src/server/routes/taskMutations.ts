@@ -67,7 +67,12 @@ const statusBodySchema = z.object({ status: statusValueSchema });
 const commentBodySchema = z.object({ text: z.string().min(1).max(TEXT_MAX_LEN) });
 const labelBodySchema = z.object({ label: z.string().min(1).max(LABEL_MAX_LEN) });
 const parentBodySchema = z.object({ epicId: z.string().min(1).max(NAME_MAX_LEN) });
-const linkBodySchema = z.object({ kind: linkKindSchema, target: z.string().min(1).max(NAME_MAX_LEN) });
+const linkBodySchema = z.object({
+  kind: linkKindSchema,
+  target: z.string().min(1).max(NAME_MAX_LEN),
+  targetRepo: z.string().min(1).max(NAME_MAX_LEN).optional(),
+});
+const linkDeleteQuerySchema = z.object({ repo: z.string().min(1).max(NAME_MAX_LEN).optional() });
 
 const commentParamSchema = repoTaskParamSchema.extend({ n: z.coerce.number().int().positive() });
 const labelParamSchema = repoTaskParamSchema.extend({ label: z.string().min(1).max(LABEL_MAX_LEN) });
@@ -215,7 +220,7 @@ export function registerTaskMutationsRoutes(rawApp: FastifyInstance, env: Resolv
     { schema: { params: repoTaskParamSchema, body: linkBodySchema } },
     async (request, reply) => {
       const { data, warnings } = await write(request.params.name, (ctx) =>
-        addLink(ctx, request.params.id, request.body.kind, request.body.target),
+        addLink(ctx, request.params.id, request.body.kind, request.body.target, request.body.targetRepo),
       );
       reply.code(201);
       return { data, warnings };
@@ -224,10 +229,10 @@ export function registerTaskMutationsRoutes(rawApp: FastifyInstance, env: Resolv
 
   app.delete(
     "/api/repos/:name/tasks/:id/links/:kind/:target",
-    { schema: { params: linkParamSchema } },
+    { schema: { params: linkParamSchema, querystring: linkDeleteQuerySchema } },
     async (request) => {
       const { data, warnings } = await write(request.params.name, (ctx) =>
-        removeLink(ctx, request.params.id, request.params.kind, request.params.target),
+        removeLink(ctx, request.params.id, request.params.kind, request.params.target, request.query.repo),
       );
       return { data, warnings };
     },

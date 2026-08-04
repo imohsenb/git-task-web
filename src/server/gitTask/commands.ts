@@ -286,13 +286,23 @@ export async function clearParentIfSet(ctx: GitTaskContext, id: string): Promise
   return clearParent(ctx, current.parent, id);
 }
 
+/**
+ * `--repo` (a registered repo name, local path, or remote URL — resolved by git-task
+ * itself against this same GIT_TASK_CONFIG_DIR) makes the link cross-repo. It's a flag
+ * scoped to `link <id> add`, so like every other flag it must land before the `--`
+ * that guards the free-text target.
+ */
 export function addLink(
   ctx: GitTaskContext,
   id: string,
   kind: LinkKind,
   target: string,
+  targetRepo?: string,
 ): Promise<GitTaskResult<MutationJson>> {
-  const opts: RunGitTaskOptions = { ...ctx, args: ["link", id, "add", kind, "--", target], commandLabel: "link" };
+  const args = ["link", id, "add", kind];
+  if (targetRepo !== undefined) args.push(`--repo=${targetRepo}`);
+  args.push("--", target);
+  const opts: RunGitTaskOptions = { ...ctx, args, commandLabel: "link" };
   return runGitTask(mutationJsonSchema, opts);
 }
 
@@ -301,8 +311,12 @@ export function removeLink(
   id: string,
   kind: LinkKind,
   target: string,
+  targetRepo?: string,
 ): Promise<GitTaskResult<MutationJson>> {
-  const opts: RunGitTaskOptions = { ...ctx, args: ["link", id, "rm", kind, "--", target], commandLabel: "link" };
+  const args = ["link", id, "rm", kind];
+  if (targetRepo !== undefined) args.push(`--repo=${targetRepo}`);
+  args.push("--", target);
+  const opts: RunGitTaskOptions = { ...ctx, args, commandLabel: "link" };
   return runGitTask(mutationJsonSchema, opts);
 }
 
