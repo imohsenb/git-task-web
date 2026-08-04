@@ -1,0 +1,13 @@
+[
+  {
+    "author": {
+      "name": "Mohsen Beiranvand",
+      "email": "imohsen.b@gmail.com"
+    },
+    "timestamp": 1785876030,
+    "op": "CreateTask",
+    "title": "Support cross repo EPIC",
+    "kind": "task",
+    "description": "now the cli support cross repo EPIC that should replicate the link implementation"
+  }
+]
