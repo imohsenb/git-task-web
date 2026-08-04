@@ -1,0 +1,13 @@
+[
+  {
+    "author": {
+      "name": "Mohsen Beiranvand",
+      "email": "imohsen.b@gmail.com"
+    },
+    "timestamp": 1785876117,
+    "op": "CreateTask",
+    "title": "Improve the task detail dialog",
+    "kind": "task",
+    "description": "Task detail is a side drawer apparently but it should have it's own dialog. in addition it doesn't show the list of epic children"
+  }
+]
