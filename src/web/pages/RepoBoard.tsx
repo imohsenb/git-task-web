@@ -85,20 +85,22 @@ export function RepoBoardPage() {
   }
 
   return (
-    <div className="px-8 py-5">
-      {data && <WarningStrip warnings={data.warnings} />}
+    <div className="flex h-full flex-col px-8 py-5">
+      <div className="shrink-0">
+        {data && <WarningStrip warnings={data.warnings} />}
 
-      <FilterBar filters={filters} setFilters={setFilters} statuses={[]} showStatusFilter={false} />
+        <FilterBar filters={filters} setFilters={setFilters} statuses={[]} showStatusFilter={false} />
 
-      {isLoading && <p className="text-sm text-ink-4">Loading tasks…</p>}
-      {error && <p className="text-sm text-danger-ink">{error.message}</p>}
-      {!isLoading && !error && columns.length === 0 && (
-        <p className="text-sm text-ink-4">No tasks match the current filters.</p>
-      )}
+        {isLoading && <p className="text-sm text-ink-4">Loading tasks…</p>}
+        {error && <p className="text-sm text-danger-ink">{error.message}</p>}
+        {!isLoading && !error && columns.length === 0 && (
+          <p className="text-sm text-ink-4">No tasks match the current filters.</p>
+        )}
+      </div>
 
       {columns.length > 0 && (
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-          <div className="flex items-start gap-4 overflow-x-auto pb-4">
+          <div className="flex min-h-0 flex-1 items-stretch gap-4 overflow-x-auto pb-1">
             {columns.map((col) => (
               <BoardColumn
                 key={col.status}

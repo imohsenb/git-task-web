@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { LinkKind, TaskJson } from "../../../shared/contract";
 import { Pill } from "../ui/Pill";
+import { Combobox } from "../ui/Combobox";
 import { useAddLink, useRemoveLink } from "../../lib/mutations";
 import { useRepoTasks } from "../../lib/queries";
 
@@ -58,18 +59,16 @@ export function LinksSection({ repo, task }: { repo: string; task: TaskJson }) {
               </option>
             ))}
           </select>
-          <select
+          <Combobox
+            className="min-w-[14rem] flex-1"
             value={target}
-            onChange={(e) => setTarget(e.target.value)}
-            className="min-w-[10rem] flex-1 rounded-control border border-line bg-surface px-2 py-1 text-micro text-ink-1"
-          >
-            <option value="">Pick a task…</option>
-            {candidates.map((t) => (
-              <option key={t.id} value={t.display_id}>
-                {t.display_id} · {t.title || "(untitled)"}
-              </option>
-            ))}
-          </select>
+            onChange={setTarget}
+            placeholder="Search tasks…"
+            options={candidates.map((t) => ({
+              value: t.display_id,
+              label: `${t.display_id} · ${t.title || "(untitled)"}`,
+            }))}
+          />
           <button
             type="button"
             onClick={submit}

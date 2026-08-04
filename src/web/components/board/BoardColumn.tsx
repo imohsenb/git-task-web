@@ -23,15 +23,15 @@ export function BoardColumn({
     <div
       ref={setNodeRef}
       className={[
-        "w-column shrink-0 rounded-well p-2.5 transition-colors",
+        "flex h-full min-w-[240px] max-w-[22rem] flex-1 flex-col rounded-well p-2.5 transition-colors",
         isOver ? "bg-brand-soft" : "bg-surface-sunk",
       ].join(" ")}
     >
-      <div className="mb-2 flex items-center gap-2 px-1">
+      <div className="mb-2 flex shrink-0 items-center gap-2 px-1">
         <Pill sem={semantic}>{status}</Pill>
         <span className="text-micro text-ink-4">{tasks.length}</span>
       </div>
-      <div className="space-y-2">
+      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-0.5">
         {tasks.map((task) => (
           <TaskCard
             key={task.id}

@@ -1,10 +1,13 @@
 import { useState } from "react";
 import type { TaskJson } from "../../../shared/contract";
 import { Pill } from "../ui/Pill";
+import { Combobox } from "../ui/Combobox";
 import { kindSemantic, prioritySemantic, statusSemantic } from "../../lib/status";
 import { avatarFor } from "../../lib/avatar";
 import { relativeTime } from "../../lib/format";
 import { useSetStatus } from "../../lib/mutations";
+import { useRepoTasks } from "../../lib/queries";
+import { deriveColumns } from "../../lib/columns";
 import { TaskEditForm } from "./TaskEditForm";
 import { LabelsSection } from "./LabelsSection";
 import { LinksSection } from "./LinksSection";
@@ -162,10 +165,18 @@ function VersionsSection({ task }: { task: TaskJson }) {
   );
 }
 
+/**
+ * Options come from `deriveColumns` — the same default-preset ∪ observed-statuses
+ * union the board uses for its columns (§ board fix), so the picker always offers
+ * at least todo/doing/blocked/done plus whatever this repo actually uses.
+ * `allowCustom` stays on: git-task's `status` is free-form (no closed enum — see
+ * `setStatus round-trips a dash-prefixed status value verbatim` in
+ * mutations.test.ts), so typing an unlisted value and hitting Enter still works.
+ */
 function StatusEditor({ repo, task }: { repo: string; task: TaskJson }) {
   const setStatus = useSetStatus(repo);
+  const { data: tasksData } = useRepoTasks(repo);
   const [isEditing, setIsEditing] = useState(false);
-  const [value, setValue] = useState(task.status);
 
   if (task.deleted) {
     return <Pill sem={statusSemantic(task.status)}>{task.status}</Pill>;
@@ -173,40 +184,33 @@ function StatusEditor({ repo, task }: { repo: string; task: TaskJson }) {
 
   if (!isEditing) {
     return (
-      <button
-        type="button"
-        title="Click to change status"
-        onClick={() => {
-          setValue(task.status);
-          setIsEditing(true);
-        }}
-      >
+      <button type="button" title="Click to change status" onClick={() => setIsEditing(true)}>
         <Pill sem={statusSemantic(task.status)}>{task.status}</Pill>
       </button>
     );
   }
 
-  function commit() {
-    const trimmed = value.trim();
+  const options = deriveColumns(tasksData?.data.statuses ?? []).map((col) => ({
+    value: col.status,
+    label: col.status,
+  }));
+
+  function commit(next: string) {
     setIsEditing(false);
-    if (!trimmed || trimmed === task.status) return;
-    setStatus.mutate({ id: task.display_id, status: trimmed });
+    if (!next || next === task.status) return;
+    setStatus.mutate({ id: task.display_id, status: next });
   }
 
   return (
-    <input
+    <Combobox
       autoFocus
-      value={value}
-      onChange={(e) => setValue(e.target.value)}
-      onBlur={commit}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          commit();
-        }
-        if (e.key === "Escape") setIsEditing(false);
-      }}
-      className="w-28 rounded-pill border border-brand bg-surface px-2 py-0.5 text-micro text-ink-1 focus:outline-none"
+      allowCustom
+      className="w-40"
+      value={task.status}
+      options={options}
+      placeholder="Status…"
+      onChange={commit}
+      onCancel={() => setIsEditing(false)}
     />
   );
 }

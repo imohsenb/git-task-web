@@ -18,8 +18,8 @@ export function RepoWorkspace() {
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
 
   return (
-    <div>
-      <div className="px-8 pt-6">
+    <div className="flex h-full flex-col">
+      <div className="shrink-0 px-8 pt-6">
         <Breadcrumb
           items={[
             { label: "Home", to: "/" },
@@ -35,7 +35,7 @@ export function RepoWorkspace() {
         />
       </div>
 
-      <div className="mt-5 flex items-center gap-1 border-b border-line px-8">
+      <div className="mt-5 flex shrink-0 items-center gap-1 border-b border-line px-8">
         {TABS.map((tab) => (
           <NavLink
             key={tab.view}
@@ -60,7 +60,9 @@ export function RepoWorkspace() {
         </button>
       </div>
 
-      <Outlet />
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <Outlet />
+      </div>
 
       {isNewTaskOpen && <NewTaskDialog repo={repo} onClose={() => setIsNewTaskOpen(false)} />}
     </div>
