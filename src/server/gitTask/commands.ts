@@ -1,20 +1,24 @@
 import { runGitTask, type GitTaskResult, type RunGitTaskOptions } from "./executor.js";
 import {
+  cloneJsonSchema,
   dropJsonSchema,
   lsJsonSchema,
   mutationJsonSchema,
   registryJsonSchema,
+  registryMutationJsonSchema,
   repoConfigJsonSchema,
   taskJsonSchema,
   whoamiJsonSchema,
 } from "../../shared/contract.zod.js";
 import type {
+  CloneJson,
   DropJson,
   LinkKind,
   LsJson,
   MutationJson,
   Priority,
   RegistryJson,
+  RegistryMutationJson,
   RepoConfigJson,
   TaskJson,
   TaskKind,
@@ -331,4 +335,77 @@ export function dropTask(ctx: GitTaskContext, id: string, remote?: string): Prom
   args.push("--", id);
   const opts: RunGitTaskOptions = { ...ctx, args, commandLabel: "drop" };
   return runGitTask(dropJsonSchema, opts);
+}
+
+/*
+ * --- Repos & projects ---
+ *
+ * `register`/`project *` resolve entirely from `ctx.cwd` (register) or `ctx.configDir`
+ * (project) — never from a name-to-path lookup the caller supplies, so these read no
+ * differently, argv-safety-wise, than the mutations above. Verified live against the
+ * real binary, including the executor's actual `[subcommand, --format, json, ...rest]`
+ * insertion point: for a nested command the "subcommand" token is the *first* word
+ * (`project`, not `create`), so `--format json` lands between `project` and `create`,
+ * not after `--`.
+ */
+
+export function registerRepo(
+  ctx: GitTaskContext,
+  name?: string,
+  project?: string,
+): Promise<GitTaskResult<RegistryMutationJson>> {
+  const args = ["register"];
+  if (project !== undefined) args.push(`--project=${project}`);
+  if (name !== undefined) args.push("--", name);
+  const opts: RunGitTaskOptions = { ...ctx, args, commandLabel: "register" };
+  return runGitTask(registryMutationJsonSchema, opts);
+}
+
+export function unregisterRepo(ctx: GitTaskContext, name: string): Promise<GitTaskResult<RegistryMutationJson>> {
+  const opts: RunGitTaskOptions = { ...ctx, args: ["unregister", "--", name], commandLabel: "unregister" };
+  return runGitTask(registryMutationJsonSchema, opts);
+}
+
+export function projectCreate(ctx: GitTaskContext, name: string): Promise<GitTaskResult<RegistryMutationJson>> {
+  const opts: RunGitTaskOptions = { ...ctx, args: ["project", "create", "--", name], commandLabel: "project" };
+  return runGitTask(registryMutationJsonSchema, opts);
+}
+
+export function projectSetDefault(ctx: GitTaskContext, name: string): Promise<GitTaskResult<RegistryMutationJson>> {
+  const opts: RunGitTaskOptions = {
+    ...ctx,
+    args: ["project", "set-default", "--", name],
+    commandLabel: "project",
+  };
+  return runGitTask(registryMutationJsonSchema, opts);
+}
+
+export function projectRename(
+  ctx: GitTaskContext,
+  oldName: string,
+  newName: string,
+): Promise<GitTaskResult<RegistryMutationJson>> {
+  const opts: RunGitTaskOptions = {
+    ...ctx,
+    args: ["project", "rename", "--", oldName, newName],
+    commandLabel: "project",
+  };
+  return runGitTask(registryMutationJsonSchema, opts);
+}
+
+export function projectDelete(ctx: GitTaskContext, name: string): Promise<GitTaskResult<RegistryMutationJson>> {
+  const opts: RunGitTaskOptions = { ...ctx, args: ["project", "delete", "--", name], commandLabel: "project" };
+  return runGitTask(registryMutationJsonSchema, opts);
+}
+
+/**
+ * `dir` is where clone puts checkout — a filesystem path/name, not a git ref or flag
+ * value, so it goes after `--` alongside `url` rather than as a `--flag=value` (a
+ * leading '-' in a directory name is a legitimate, if unusual, request here).
+ */
+export function cloneRepo(ctx: GitTaskContext, url: string, dir?: string): Promise<GitTaskResult<CloneJson>> {
+  const args = ["clone", "--", url];
+  if (dir !== undefined) args.push(dir);
+  const opts: RunGitTaskOptions = { ...ctx, args, commandLabel: "clone" };
+  return runGitTask(cloneJsonSchema, opts);
 }

@@ -240,6 +240,14 @@ export interface WhoamiJson {
   effective: IdentityInfoJson;
 }
 
+/** git-task-web's own composite for the "clone a URL" flow (POST /api/repos/clone) —
+ * not part of the CLI contract. `clone` and `register` are two separate git-task
+ * invocations under the hood; the UI wants both results in one response. */
+export interface CloneAndRegisterJson {
+  clone: CloneJson;
+  register: RegistryMutationJson;
+}
+
 /** git-task-web's own /api/meta shape — not part of the CLI contract. */
 export interface MetaJson {
   name: string;

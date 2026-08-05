@@ -3,7 +3,18 @@ import { toast } from "sonner";
 import { apiDelete, apiPatch, apiPost, apiPut, ApiError, type ApiSuccess } from "./api";
 import { queryKeys } from "./queryKeys";
 import { useIdentityDialog } from "../components/identity/IdentityDialogContext";
-import type { DropJson, LinkKind, LsJson, MutationJson, Priority, TaskJson, TaskKind } from "../../shared/contract";
+import type {
+  CloneAndRegisterJson,
+  DropJson,
+  LinkKind,
+  LsJson,
+  MutationJson,
+  Priority,
+  RegistryJson,
+  RegistryMutationJson,
+  TaskJson,
+  TaskKind,
+} from "../../shared/contract";
 
 function repoTasksPath(repo: string): string {
   return `/repos/${encodeURIComponent(repo)}/tasks`;
@@ -34,23 +45,27 @@ function patchListCaches(queryClient: QueryClient, repo: string, id: string, pat
   queryClient.setQueriesData<ApiSuccess<LsJson>>({ queryKey: ["tasksAll"] }, updater);
 }
 
-/** Shared by every mutation hook below. `onError`: identity_missing (§3.2) opens the
+/** Shared by every mutation hook in this file. identity_missing (§3.2) opens the
  * dedicated dialog instead of a toast — the terminal command it needs isn't
- * actionable from a toast. `applyTask`: pushes the mutation's returned task straight
- * into the task-detail cache (drawer/full page reflect the write with no refetch
- * round-trip) and invalidates every list/board/table query for the repo so the card
- * behind it updates too. */
-function useMutationEffects(repo: string) {
-  const queryClient = useQueryClient();
+ * actionable from a toast. */
+function useApiErrorHandler() {
   const identityDialog = useIdentityDialog();
-
-  function onError(error: unknown) {
+  return function onError(error: unknown) {
     if (error instanceof ApiError && error.kind === "identity_missing") {
       identityDialog.open(error);
       return;
     }
     toast.error(error instanceof Error ? error.message : "Request failed");
-  }
+  };
+}
+
+/** Shared by every task mutation hook below. `applyTask`: pushes the mutation's
+ * returned task straight into the task-detail cache (drawer/full page reflect the
+ * write with no refetch round-trip) and invalidates every list/board/table query for
+ * the repo so the card behind it updates too. */
+function useMutationEffects(repo: string) {
+  const queryClient = useQueryClient();
+  const onError = useApiErrorHandler();
 
   function applyTask(task: TaskJson) {
     queryClient.setQueryData(queryKeys.task(repo, task.display_id), { data: task, warnings: [] });
@@ -59,6 +74,21 @@ function useMutationEffects(repo: string) {
   }
 
   return { onError, applyTask, queryClient };
+}
+
+/** Shared by every repos/projects registry mutation hook below (§1.3's
+ * RegistryMutationJson family) — every one of them returns the complete fresh
+ * registry, so the cache can be written straight from the response with no refetch,
+ * same trick as applyTask above. */
+function useRegistryMutationEffects() {
+  const queryClient = useQueryClient();
+  const onError = useApiErrorHandler();
+
+  function applyRegistry(registry: RegistryJson) {
+    queryClient.setQueryData(queryKeys.registry, { data: registry, warnings: [] });
+  }
+
+  return { onError, applyRegistry };
 }
 
 export interface NewTaskInput {
@@ -288,6 +318,113 @@ export function useDropTask(repo: string, id: string) {
       queryClient.invalidateQueries({ queryKey: ["tasks", repo] });
       queryClient.invalidateQueries({ queryKey: ["tasksAll"] });
       toast.success(`Dropped ${result.data.display_id}`);
+    },
+    onError,
+  });
+}
+
+export interface RegisterRepoInput {
+  path: string;
+  name?: string;
+  project?: string;
+}
+
+export function useRegisterRepo() {
+  const { onError, applyRegistry } = useRegistryMutationEffects();
+  return useMutation({
+    mutationFn: (input: RegisterRepoInput) => apiPost<RegistryMutationJson>("/repos", input),
+    onSuccess: (result) => {
+      if (!result) return;
+      applyRegistry(result.data.registry);
+      toast.success(`Registered '${result.data.name}'`);
+    },
+    onError,
+  });
+}
+
+export interface CloneRepoInput {
+  url: string;
+  dir?: string;
+  name?: string;
+  project?: string;
+}
+
+export function useCloneRepo() {
+  const { onError, applyRegistry } = useRegistryMutationEffects();
+  return useMutation({
+    mutationFn: (input: CloneRepoInput) => apiPost<CloneAndRegisterJson>("/repos/clone", input),
+    onSuccess: (result) => {
+      if (!result) return;
+      applyRegistry(result.data.register.registry);
+      toast.success(`Cloned and registered '${result.data.register.name}' (${result.data.clone.task_count} tasks)`);
+    },
+    onError,
+  });
+}
+
+export function useMoveRepoProject(name: string) {
+  const { onError, applyRegistry } = useRegistryMutationEffects();
+  return useMutation({
+    mutationFn: (project: string) => apiPatch<RegistryMutationJson>(`/repos/${encodeURIComponent(name)}`, { project }),
+    onSuccess: (result) => {
+      if (result) applyRegistry(result.data.registry);
+    },
+    onError,
+  });
+}
+
+export function useUnregisterRepo() {
+  const { onError, applyRegistry } = useRegistryMutationEffects();
+  return useMutation({
+    mutationFn: (name: string) => apiDelete<RegistryMutationJson>(`/repos/${encodeURIComponent(name)}`),
+    onSuccess: (result) => {
+      if (!result) return;
+      applyRegistry(result.data.registry);
+      toast.success(`Unregistered '${result.data.name}'`);
+    },
+    onError,
+  });
+}
+
+export function useCreateProject() {
+  const { onError, applyRegistry } = useRegistryMutationEffects();
+  return useMutation({
+    mutationFn: (name: string) => apiPost<RegistryMutationJson>("/projects", { name }),
+    onSuccess: (result) => {
+      if (result) applyRegistry(result.data.registry);
+    },
+    onError,
+  });
+}
+
+export function useRenameProject(name: string) {
+  const { onError, applyRegistry } = useRegistryMutationEffects();
+  return useMutation({
+    mutationFn: (newName: string) => apiPatch<RegistryMutationJson>(`/projects/${encodeURIComponent(name)}`, { newName }),
+    onSuccess: (result) => {
+      if (result) applyRegistry(result.data.registry);
+    },
+    onError,
+  });
+}
+
+export function useSetDefaultProject() {
+  const { onError, applyRegistry } = useRegistryMutationEffects();
+  return useMutation({
+    mutationFn: (name: string) => apiPut<RegistryMutationJson>(`/projects/${encodeURIComponent(name)}/default`),
+    onSuccess: (result) => {
+      if (result) applyRegistry(result.data.registry);
+    },
+    onError,
+  });
+}
+
+export function useDeleteProject() {
+  const { onError, applyRegistry } = useRegistryMutationEffects();
+  return useMutation({
+    mutationFn: (name: string) => apiDelete<RegistryMutationJson>(`/projects/${encodeURIComponent(name)}`),
+    onSuccess: (result) => {
+      if (result) applyRegistry(result.data.registry);
     },
     onError,
   });

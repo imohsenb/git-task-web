@@ -1,14 +1,26 @@
+import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { Folder, GitBranch } from "lucide-react";
+import { Folder, GitBranch, Plus } from "lucide-react";
 import { useRegistry } from "../../lib/queries";
+import { AddRepoDialog } from "../repo/AddRepoDialog";
 
 export function Sidebar() {
   const { data, isLoading, error } = useRegistry();
+  const [showAddRepo, setShowAddRepo] = useState(false);
 
   return (
     <nav className="w-[268px] shrink-0 border-r border-line bg-shell flex flex-col">
-      <div className="h-[64px] flex items-center px-5">
+      <div className="h-[64px] flex items-center justify-between px-5">
         <span className="text-lg font-display font-display tracking-display text-ink-1">git-task</span>
+        <button
+          type="button"
+          onClick={() => setShowAddRepo(true)}
+          aria-label="Add a repo"
+          title="Add a repo"
+          className="rounded-control p-1 text-ink-4 transition-colors hover:bg-surface-sunk hover:text-ink-1"
+        >
+          <Plus size={16} />
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 pb-4 space-y-4">
@@ -55,6 +67,8 @@ export function Sidebar() {
             </div>
           ))}
       </div>
+
+      {showAddRepo && <AddRepoDialog onClose={() => setShowAddRepo(false)} />}
     </nav>
   );
 }

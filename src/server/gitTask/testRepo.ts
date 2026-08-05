@@ -30,6 +30,31 @@ export class TestRepo {
     return repo;
   }
 
+  /** A second repo sharing another TestRepo's configDir — mirrors
+   * git-task/tests/common/mod.rs's new_with_shared_config. Needed for registry tests
+   * where two distinct repos must compete for the same registry (e.g. a name
+   * collision) rather than each getting their own isolated one. */
+  static createWithSharedConfig(configDir: string): TestRepo {
+    const dir = realpathSync(mkdtempSync(join(tmpdir(), "gtw-repo-")));
+    const repo = new TestRepo(dir, configDir);
+    repo.git(["init", "-q"]);
+    repo.git(["config", "user.name", "Test User"]);
+    repo.git(["config", "user.email", "test@example.com"]);
+    return repo;
+  }
+
+  /** A bare remote for clone tests — mirrors git-task/tests/sync.rs's init_bare. Not a
+   * TestRepo itself (no GIT_TASK_CONFIG_DIR of its own): it only ever plays the role
+   * of a push/clone target. */
+  static bareRemote(): string {
+    const dir = realpathSync(mkdtempSync(join(tmpdir(), "gtw-bare-")));
+    const result = spawnSync("git", ["init", "-q", "--bare", dir]);
+    if (result.status !== 0) {
+      throw new Error(`git init --bare failed: ${result.stderr}`);
+    }
+    return dir;
+  }
+
   /** Env that hides global/system git config, so "no identity anywhere" is reliable
    * regardless of what's set up on the machine running the tests. */
   noGlobalIdentityEnv(): NodeJS.ProcessEnv {

@@ -6,6 +6,7 @@ import { RepoWorkspace } from "./pages/RepoWorkspace";
 import { RepoBoardPage } from "./pages/RepoBoard";
 import { RepoListPage } from "./pages/RepoList";
 import { RepoTablePage } from "./pages/RepoTable";
+import { Settings } from "./pages/Settings";
 import { TaskDrawer } from "./pages/TaskDrawer";
 import { TaskPage } from "./pages/TaskPage";
 
@@ -14,6 +15,7 @@ export const router = createBrowserRouter([
     element: <AppShell />,
     children: [
       { path: "/", element: <Home /> },
+      { path: "/settings", element: <Settings /> },
       { path: "/p/:project", element: <ProjectPage /> },
       {
         path: "/r/:repo",

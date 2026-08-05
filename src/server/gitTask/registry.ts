@@ -42,11 +42,11 @@ export function invalidateRegistry(configDir?: string): void {
 }
 
 /**
- * The "R" lookup from the route table: repo name -> registered entry. Every per-repo
- * route resolves through here — a route never accepts a filesystem path from the
- * client, only a registered name, so there is no path-traversal surface at this layer.
+ * Registry lookup by name, without the openable gate — registry mutations (move
+ * project, unregister) only need the registered path, not a working task store, so a
+ * repo whose task store is broken can still be re-pathed or removed from the registry.
  */
-export async function resolveRepo(ctx: GitTaskContext, name: string): Promise<RegistryRepoJson> {
+export async function resolveRepoEntry(ctx: GitTaskContext, name: string): Promise<RegistryRepoJson> {
   const { data: registry } = await getRegistry(ctx);
   const repo = registry.repos.find((r) => r.name === name);
   if (!repo) {
@@ -56,6 +56,16 @@ export async function resolveRepo(ctx: GitTaskContext, name: string): Promise<Re
       context: { query: name, entity: "repo" },
     });
   }
+  return repo;
+}
+
+/**
+ * The "R" lookup from the route table: repo name -> registered entry. Every per-repo
+ * task route resolves through here — a route never accepts a filesystem path from the
+ * client, only a registered name, so there is no path-traversal surface at this layer.
+ */
+export async function resolveRepo(ctx: GitTaskContext, name: string): Promise<RegistryRepoJson> {
+  const repo = await resolveRepoEntry(ctx, name);
   if (repo.openable === false) {
     throw new GitTaskError({
       kind: "not_a_repo",

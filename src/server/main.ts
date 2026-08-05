@@ -8,6 +8,7 @@ import { resolveEnv } from "./env.js";
 import { registerErrorHandler } from "./routes/errorHandler.js";
 import { registerMetaRoute } from "./routes/meta.js";
 import { registerRegistryRoute } from "./routes/registry.js";
+import { registerRegistryMutationsRoutes } from "./routes/registryMutations.js";
 import { registerTasksRoutes } from "./routes/tasks.js";
 import { registerTaskMutationsRoutes } from "./routes/taskMutations.js";
 
@@ -49,6 +50,7 @@ export async function buildServer(opts: BuildServerOptions = {}) {
 
   registerMetaRoute(app, env, { webVersion: version, mode });
   registerRegistryRoute(app, env);
+  registerRegistryMutationsRoutes(app, env);
   registerTasksRoutes(app, env);
   registerTaskMutationsRoutes(app, env);
 
