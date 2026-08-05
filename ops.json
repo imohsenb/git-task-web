@@ -4,8 +4,8 @@
       "name": "Mohsen Beiranvand",
       "email": "imohsen.b@gmail.com"
     },
-    "timestamp": 1785951040,
+    "timestamp": 1785951054,
     "op": "SetDescription",
-    "description": "Task detail is a side drawer apparently but it should have its own dialog. \nin addition it doesn't show the list of epic children"
+    "description": "Task detail is a side drawer apparently but it should have its own dialog. \nin addition it doesn't show the list of epic's children"
   }
 ]
