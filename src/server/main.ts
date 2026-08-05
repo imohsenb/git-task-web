@@ -5,12 +5,19 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { registerStatic } from "./static.js";
 import { resolveEnv } from "./env.js";
+import { dataDirContext } from "./gitTask/context.js";
+import { getRegistry } from "./gitTask/registry.js";
+import { hasSubscribers, pollForChanges } from "./gitTask/sse.js";
 import { registerErrorHandler } from "./routes/errorHandler.js";
+import { registerEventsRoute } from "./routes/events.js";
 import { registerMetaRoute } from "./routes/meta.js";
 import { registerRegistryRoute } from "./routes/registry.js";
 import { registerRegistryMutationsRoutes } from "./routes/registryMutations.js";
+import { registerSyncRoutes } from "./routes/sync.js";
 import { registerTasksRoutes } from "./routes/tasks.js";
 import { registerTaskMutationsRoutes } from "./routes/taskMutations.js";
+
+const SSE_POLL_MS = 5_000;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -53,6 +60,22 @@ export async function buildServer(opts: BuildServerOptions = {}) {
   registerRegistryMutationsRoutes(app, env);
   registerTasksRoutes(app, env);
   registerTaskMutationsRoutes(app, env);
+  registerSyncRoutes(app, env);
+  registerEventsRoute(app);
+
+  // §3.4/§4.5: catches a repo change this server didn't make itself (a concurrent
+  // terminal `git task status`, another git-task-web instance). No-ops with no open
+  // SSE connections, so an idle app costs nothing beyond one interval tick.
+  const pollTimer = setInterval(() => {
+    if (!hasSubscribers()) return;
+    getRegistry(dataDirContext(env))
+      .then(({ data }) => pollForChanges(data.repos.map((r) => ({ name: r.name, path: r.path }))))
+      .catch((err) => app.log.warn({ err }, "sse ref-digest poll failed"));
+  }, SSE_POLL_MS);
+  app.addHook("onClose", (_instance, done) => {
+    clearInterval(pollTimer);
+    done();
+  });
 
   if (serveStatic) {
     await registerStatic(app);

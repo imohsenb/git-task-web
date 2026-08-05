@@ -1,33 +1,85 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Trash2, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
+import { Plus, Trash2, AlertTriangle, ArrowDown, ArrowUp } from "lucide-react";
 import { useRegistry } from "../../lib/queries";
-import { useMoveRepoProject, useUnregisterRepo } from "../../lib/mutations";
+import { useMoveRepoProject, useSyncAll, useUnregisterRepo } from "../../lib/mutations";
 import { AddRepoDialog } from "../repo/AddRepoDialog";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
-import type { RegistryRepoJson } from "../../../shared/contract";
+import type { RegistryRepoJson, SyncItemResult } from "../../../shared/contract";
 
 export function ReposSection() {
   const { data: registry } = useRegistry();
   const [showAddRepo, setShowAddRepo] = useState(false);
   const [unregisterTarget, setUnregisterTarget] = useState<RegistryRepoJson | null>(null);
+  const [lastSync, setLastSync] = useState<SyncItemResult[] | null>(null);
   const unregisterRepo = useUnregisterRepo();
+  const syncAll = useSyncAll();
 
   const repos = registry?.data.repos ?? [];
   const projects = registry?.data.projects ?? [];
+  const syncableRepos = repos.filter((r) => (r.remotes?.length ?? 0) > 0).map((r) => r.name);
+
+  function runSyncAll(op: "push" | "pull") {
+    syncAll.mutate(
+      { repos: syncableRepos, op },
+      {
+        onSuccess: (result) => {
+          if (!result) return;
+          setLastSync(result.data.results);
+          const failed = result.data.results.filter((r) => !r.ok).length;
+          const verb = op === "push" ? "Pushed" : "Pulled";
+          if (failed === 0) toast.success(`${verb} ${result.data.results.length} repo(s)`);
+          else toast.warning(`${verb}: ${result.data.results.length - failed} ok, ${failed} failed`);
+        },
+      },
+    );
+  }
 
   return (
     <section>
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-4">Repos</h2>
-        <button
-          type="button"
-          onClick={() => setShowAddRepo(true)}
-          className="flex items-center gap-1 rounded-control bg-brand px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
-        >
-          <Plus size={14} /> Add repo
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => runSyncAll("pull")}
+            disabled={syncAll.isPending || syncableRepos.length === 0}
+            title={syncableRepos.length === 0 ? "No registered repo has a remote configured" : "Pull every repo"}
+            className="flex items-center gap-1 rounded-control border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-1 transition-colors hover:bg-surface-sunk disabled:opacity-50"
+          >
+            <ArrowDown size={14} /> Pull all
+          </button>
+          <button
+            type="button"
+            onClick={() => runSyncAll("push")}
+            disabled={syncAll.isPending || syncableRepos.length === 0}
+            title={syncableRepos.length === 0 ? "No registered repo has a remote configured" : "Push every repo"}
+            className="flex items-center gap-1 rounded-control border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink-1 transition-colors hover:bg-surface-sunk disabled:opacity-50"
+          >
+            <ArrowUp size={14} /> Push all
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowAddRepo(true)}
+            className="flex items-center gap-1 rounded-control bg-brand px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
+          >
+            <Plus size={14} /> Add repo
+          </button>
+        </div>
       </div>
+
+      {lastSync && (
+        <ul className="mt-3 divide-y divide-line overflow-hidden rounded-card border border-line bg-surface text-sm">
+          {lastSync.map((item) => (
+            <li key={item.repo} className="flex items-center gap-2 px-3 py-1.5">
+              <span className={item.ok ? "text-success-ink" : "text-danger-ink"}>{item.ok ? "✓" : "✕"}</span>
+              <span className="text-ink-2">{item.repo}</span>
+              {!item.ok && item.error && <span className="truncate text-micro text-ink-4">{item.error.message}</span>}
+            </li>
+          ))}
+        </ul>
+      )}
 
       {repos.length === 0 ? (
         <p className="mt-3 text-sm text-ink-4">No repos registered yet.</p>

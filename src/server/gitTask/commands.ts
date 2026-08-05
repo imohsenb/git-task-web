@@ -1,9 +1,12 @@
 import { runGitTask, type GitTaskResult, type RunGitTaskOptions } from "./executor.js";
+import { GitTaskError } from "./errors.js";
 import {
   cloneJsonSchema,
   dropJsonSchema,
   lsJsonSchema,
   mutationJsonSchema,
+  pullJsonSchema,
+  pushJsonSchema,
   registryJsonSchema,
   registryMutationJsonSchema,
   repoConfigJsonSchema,
@@ -17,6 +20,8 @@ import type {
   LsJson,
   MutationJson,
   Priority,
+  PullJson,
+  PushJson,
   RegistryJson,
   RegistryMutationJson,
   RepoConfigJson,
@@ -408,4 +413,62 @@ export function cloneRepo(ctx: GitTaskContext, url: string, dir?: string): Promi
   if (dir !== undefined) args.push(dir);
   const opts: RunGitTaskOptions = { ...ctx, args, commandLabel: "clone" };
   return runGitTask(cloneJsonSchema, opts);
+}
+
+/*
+ * --- Sync ---
+ *
+ * PLAN.md's contract reserves CliErrorKind "rejected" (409, "a partial push genuinely
+ * needs a user decision") and "remote" (502) for exactly the two failure modes below —
+ * but verified live, the current binary reports both as a flat "internal" 500 with the
+ * detail only in `causes` (a wrapped libgit2 error). reclassifySyncError() bridges that
+ * by pattern-matching libgit2's own error-class tags, the same technique errors.ts's
+ * guessKind() already uses for the pre-JSON stderr fallback. Scoped to push/pull only —
+ * an "internal" from some other command isn't this pattern and passes through as-is.
+ */
+const SYNC_TIMEOUT_MS = 120_000;
+
+function reclassifySyncError(err: unknown): unknown {
+  if (!(err instanceof GitTaskError) || err.kind !== "internal") return err;
+  const haystack = [err.message, ...err.causes].join(" ");
+
+  if (/notfastforward|non-fast-forward/i.test(haystack)) {
+    return new GitTaskError({
+      kind: "rejected",
+      message: "rejected — the remote has changes you don't have locally. Pull, then push again.",
+      causes: err.causes,
+      command: err.command,
+    });
+  }
+  if (/class=(net|ssh|http)\b|authentication/i.test(haystack)) {
+    return new GitTaskError({
+      kind: "remote",
+      message: err.message,
+      causes: err.causes,
+      command: err.command,
+    });
+  }
+  return err;
+}
+
+export async function pushRepo(ctx: GitTaskContext, remote?: string): Promise<GitTaskResult<PushJson>> {
+  const args = ["push"];
+  if (remote !== undefined) args.push("--", remote);
+  const opts: RunGitTaskOptions = { ...ctx, args, commandLabel: "push", timeoutMs: SYNC_TIMEOUT_MS };
+  try {
+    return await runGitTask(pushJsonSchema, opts);
+  } catch (err) {
+    throw reclassifySyncError(err);
+  }
+}
+
+export async function pullRepo(ctx: GitTaskContext, remote?: string): Promise<GitTaskResult<PullJson>> {
+  const args = ["pull"];
+  if (remote !== undefined) args.push("--", remote);
+  const opts: RunGitTaskOptions = { ...ctx, args, commandLabel: "pull", timeoutMs: SYNC_TIMEOUT_MS };
+  try {
+    return await runGitTask(pullJsonSchema, opts);
+  } catch (err) {
+    throw reclassifySyncError(err);
+  }
 }

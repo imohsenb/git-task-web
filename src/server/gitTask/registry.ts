@@ -16,6 +16,33 @@ interface CacheEntry {
 
 const cache = new Map<string, CacheEntry>();
 
+const CREDENTIAL_URL_PATTERN = /^(https?:\/\/)([^@/]+)@(.+)$/i;
+
+/** §3.2 option B: a PAT (or user:pass) embedded in a remote URL must never reach the
+ * client unmasked — it'd sit in every /api/registry response body, visible in devtools'
+ * network tab and browser history, indefinitely. SSH URLs (`git@host:...`,
+ * `ssh://...`) carry no embedded credential — auth goes through the agent — so they
+ * pass through untouched. Nothing server-side needs the raw URL back: push/pull always
+ * address a remote by its configured *name* ("origin"), never by URL. */
+function maskRemoteUrl(url: string | null): string | null {
+  if (!url) return url;
+  const match = url.match(CREDENTIAL_URL_PATTERN);
+  return match ? `${match[1]}***@${match[3]}` : url;
+}
+
+/** Applied to every RegistryJson before it leaves the server — both here and in
+ * registryMutations.ts, which gets its own copy of the registry back from each
+ * register/unregister/project mutation rather than through getRegistry(). */
+export function maskRegistry(registry: RegistryJson): RegistryJson {
+  return {
+    ...registry,
+    repos: registry.repos.map((repo) => ({
+      ...repo,
+      remotes: repo.remotes?.map((r) => ({ ...r, url: maskRemoteUrl(r.url), push_url: maskRemoteUrl(r.push_url) })) ?? null,
+    })),
+  };
+}
+
 /** Caches the full result (data + warnings) — §3.5: "--deep must never fail on an
  * unopenable repo — set openable:false + error + a warnings[] entry", and that
  * warnings entry needs to reach the HTTP response same as the data does. */
@@ -28,7 +55,8 @@ export async function getRegistry(
   if (!opts.force && cached && cached.expiresAt > now) {
     return cached.result;
   }
-  const result = await reposDeep(ctx);
+  const raw = await reposDeep(ctx);
+  const result = { ...raw, data: maskRegistry(raw.data) };
   cache.set(ctx.configDir, { result, expiresAt: now + TTL_MS });
   return result;
 }

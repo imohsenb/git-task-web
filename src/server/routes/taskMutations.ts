@@ -19,6 +19,7 @@ import {
 import { withRepoLock } from "../gitTask/locks.js";
 import { DEFAULT_TIMEOUT_MS } from "../gitTask/executor.js";
 import { invalidateLsCache } from "../gitTask/lsCache.js";
+import { notifyRepoChanged } from "../gitTask/sse.js";
 import { resolveRepo } from "../gitTask/registry.js";
 import { dataDirContext, repoContext } from "../gitTask/context.js";
 import { linkKindSchema, prioritySchema, taskKindSchema } from "../../shared/contract.zod.js";
@@ -92,6 +93,7 @@ export function registerTaskMutationsRoutes(rawApp: FastifyInstance, env: Resolv
     const ctx = repoContext(env, repo.path);
     const result = await withRepoLock(repo.path, DEFAULT_TIMEOUT_MS, () => fn(ctx));
     invalidateLsCache(repo.path);
+    notifyRepoChanged(repo.name, repo.path);
     return result;
   }
 

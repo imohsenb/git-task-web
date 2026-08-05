@@ -248,6 +248,20 @@ export interface CloneAndRegisterJson {
   register: RegistryMutationJson;
 }
 
+/** git-task-web's own shape for POST /api/sync's sequential fan-out — not part of the
+ * CLI contract (there is no `git task sync`). One entry per repo; a rejected/failed
+ * repo doesn't stop the rest. */
+export interface SyncItemResult {
+  repo: string;
+  ok: boolean;
+  data?: PushJson | PullJson;
+  error?: { kind: string; message: string };
+}
+export interface SyncJson {
+  op: "push" | "pull";
+  results: SyncItemResult[];
+}
+
 /** git-task-web's own /api/meta shape — not part of the CLI contract. */
 export interface MetaJson {
   name: string;

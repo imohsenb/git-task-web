@@ -10,8 +10,11 @@ import type {
   LsJson,
   MutationJson,
   Priority,
+  PullJson,
+  PushJson,
   RegistryJson,
   RegistryMutationJson,
+  SyncJson,
   TaskJson,
   TaskKind,
 } from "../../shared/contract";
@@ -425,6 +428,52 @@ export function useDeleteProject() {
     mutationFn: (name: string) => apiDelete<RegistryMutationJson>(`/projects/${encodeURIComponent(name)}`),
     onSuccess: (result) => {
       if (result) applyRegistry(result.data.registry);
+    },
+    onError,
+  });
+}
+
+/** push never changes local tasks — nothing to invalidate on success. Errors are
+ * read from the mutation's own `.error` by the sync panel (rejected → "pull first"
+ * CTA, remote → credential guidance), in addition to the shared toast. */
+export function usePushRepo(repo: string) {
+  const onError = useApiErrorHandler();
+  return useMutation({
+    mutationFn: (remote?: string) => apiPost<PushJson>(`/repos/${encodeURIComponent(repo)}/push`, { remote }),
+    onError,
+  });
+}
+
+export function usePullRepo(repo: string) {
+  const queryClient = useQueryClient();
+  const onError = useApiErrorHandler();
+  return useMutation({
+    mutationFn: (remote?: string) => apiPost<PullJson>(`/repos/${encodeURIComponent(repo)}/pull`, { remote }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks", repo] });
+      queryClient.invalidateQueries({ queryKey: ["tasksAll"] });
+    },
+    onError,
+  });
+}
+
+export interface SyncAllInput {
+  repos: string[];
+  op: "push" | "pull";
+  remote?: string;
+}
+
+export function useSyncAll() {
+  const queryClient = useQueryClient();
+  const onError = useApiErrorHandler();
+  return useMutation({
+    mutationFn: (input: SyncAllInput) => apiPost<SyncJson>("/sync", input),
+    onSuccess: (result) => {
+      if (!result || result.data.op !== "pull") return;
+      queryClient.invalidateQueries({ queryKey: ["tasksAll"] });
+      for (const item of result.data.results) {
+        if (item.ok) queryClient.invalidateQueries({ queryKey: ["tasks", item.repo] });
+      }
     },
     onError,
   });

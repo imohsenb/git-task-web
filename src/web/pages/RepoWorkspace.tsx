@@ -9,6 +9,7 @@ const TABS = [
   { view: "board", label: "Board" },
   { view: "list", label: "List" },
   { view: "table", label: "Table" },
+  { view: "sync", label: "Sync" },
 ] as const;
 
 export function RepoWorkspace() {

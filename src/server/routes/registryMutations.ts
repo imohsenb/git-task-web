@@ -13,7 +13,7 @@ import {
 } from "../gitTask/commands.js";
 import { withRepoLock } from "../gitTask/locks.js";
 import { DEFAULT_TIMEOUT_MS } from "../gitTask/executor.js";
-import { invalidateRegistry, resolveRepoEntry } from "../gitTask/registry.js";
+import { invalidateRegistry, maskRegistry, resolveRepoEntry } from "../gitTask/registry.js";
 import { dataDirContext, repoContext } from "../gitTask/context.js";
 import { GitTaskError } from "../gitTask/errors.js";
 import { NAME_MAX_LEN } from "./paramSchemas.js";
@@ -88,6 +88,14 @@ function assertRegisteredAsRequested(result: RegistryMutationJson, canonicalPath
   }
 }
 
+/** Every registry-mutation command returns its own fresh RegistryMutationJson
+ * straight from the CLI, bypassing getRegistry()'s cache (and the masking applied
+ * there) entirely — so each one needs the same credential-URL masking applied here
+ * before it reaches the client. See registry.ts's maskRegistry for why. */
+function maskRegistryMutation(result: RegistryMutationJson): RegistryMutationJson {
+  return { ...result, registry: maskRegistry(result.registry) };
+}
+
 export function registerRegistryMutationsRoutes(rawApp: FastifyInstance, env: ResolvedEnv) {
   const app = rawApp.withTypeProvider<ZodTypeProvider>();
 
@@ -106,7 +114,7 @@ export function registerRegistryMutationsRoutes(rawApp: FastifyInstance, env: Re
     const { data, warnings } = await writeRegistry(() => registerRepo(repoContext(env, canonicalPath), name, project));
     assertRegisteredAsRequested(data, canonicalPath);
     reply.code(201);
-    return { data, warnings };
+    return { data: maskRegistryMutation(data), warnings };
   });
 
   app.post("/api/repos/clone", { schema: { body: cloneBodySchema } }, async (request, reply) => {
@@ -115,7 +123,7 @@ export function registerRegistryMutationsRoutes(rawApp: FastifyInstance, env: Re
       const cloned = await cloneRepo(dataDirContext(env), url, dir);
       const registered = await registerRepo(repoContext(env, cloned.data.dir), name, project);
       assertRegisteredAsRequested(registered.data, cloned.data.dir);
-      const combined: CloneAndRegisterJson = { clone: cloned.data, register: registered.data };
+      const combined: CloneAndRegisterJson = { clone: cloned.data, register: maskRegistryMutation(registered.data) };
       return { data: combined, warnings: [...cloned.warnings, ...registered.warnings] };
     });
     reply.code(201);
@@ -130,18 +138,18 @@ export function registerRegistryMutationsRoutes(rawApp: FastifyInstance, env: Re
     const { data, warnings } = await writeRegistry(() =>
       registerRepo(repoContext(env, repo.path), request.params.name, request.body.project),
     );
-    return { data, warnings };
+    return { data: maskRegistryMutation(data), warnings };
   });
 
   app.delete("/api/repos/:name", { schema: { params: nameParamSchema } }, async (request) => {
     const { data, warnings } = await writeRegistry(() => unregisterRepo(dataDirContext(env), request.params.name));
-    return { data, warnings };
+    return { data: maskRegistryMutation(data), warnings };
   });
 
   app.post("/api/projects", { schema: { body: projectCreateBodySchema } }, async (request, reply) => {
     const { data, warnings } = await writeRegistry(() => projectCreate(dataDirContext(env), request.body.name));
     reply.code(201);
-    return { data, warnings };
+    return { data: maskRegistryMutation(data), warnings };
   });
 
   app.patch(
@@ -151,17 +159,17 @@ export function registerRegistryMutationsRoutes(rawApp: FastifyInstance, env: Re
       const { data, warnings } = await writeRegistry(() =>
         projectRename(dataDirContext(env), request.params.name, request.body.newName),
       );
-      return { data, warnings };
+      return { data: maskRegistryMutation(data), warnings };
     },
   );
 
   app.put("/api/projects/:name/default", { schema: { params: nameParamSchema } }, async (request) => {
     const { data, warnings } = await writeRegistry(() => projectSetDefault(dataDirContext(env), request.params.name));
-    return { data, warnings };
+    return { data: maskRegistryMutation(data), warnings };
   });
 
   app.delete("/api/projects/:name", { schema: { params: nameParamSchema } }, async (request) => {
     const { data, warnings } = await writeRegistry(() => projectDelete(dataDirContext(env), request.params.name));
-    return { data, warnings };
+    return { data: maskRegistryMutation(data), warnings };
   });
 }
