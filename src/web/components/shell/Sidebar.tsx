@@ -47,7 +47,7 @@ export function Sidebar() {
                 {repos.map((repo) => (
                   <li key={repo.name}>
                     <NavLink
-                      to={`/r/${encodeURIComponent(repo.name)}/list`}
+                      to={`/r/${encodeURIComponent(repo.name)}`}
                       className={({ isActive }) =>
                         [
                           "flex items-center gap-2 rounded-control px-2 py-1.5 text-sm transition-colors",

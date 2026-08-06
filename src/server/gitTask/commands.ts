@@ -273,26 +273,47 @@ export function removeLabel(ctx: GitTaskContext, id: string, label: string): Pro
   return runGitTask(mutationJsonSchema, opts);
 }
 
-export function setParent(ctx: GitTaskContext, epicId: string, childId: string): Promise<GitTaskResult<MutationJson>> {
-  const opts: RunGitTaskOptions = { ...ctx, args: ["epic", epicId, "add", "--", childId], commandLabel: "epic" };
+/**
+ * `--repo` makes the epic cross-repo — same convention as `addLink`/`removeLink`: a
+ * flag scoped to `epic <epic> add`, so it lands before the `--` guarding the
+ * free-text child id.
+ */
+export function setParent(
+  ctx: GitTaskContext,
+  epicId: string,
+  childId: string,
+  epicRepo?: string,
+): Promise<GitTaskResult<MutationJson>> {
+  const args = ["epic", epicId, "add"];
+  if (epicRepo !== undefined) args.push(`--repo=${epicRepo}`);
+  args.push("--", childId);
+  const opts: RunGitTaskOptions = { ...ctx, args, commandLabel: "epic" };
   return runGitTask(mutationJsonSchema, opts);
 }
 
-export function clearParent(ctx: GitTaskContext, epicId: string, childId: string): Promise<GitTaskResult<MutationJson>> {
-  const opts: RunGitTaskOptions = { ...ctx, args: ["epic", epicId, "rm", "--", childId], commandLabel: "epic" };
+export function clearParent(
+  ctx: GitTaskContext,
+  epicId: string,
+  childId: string,
+  epicRepo?: string,
+): Promise<GitTaskResult<MutationJson>> {
+  const args = ["epic", epicId, "rm"];
+  if (epicRepo !== undefined) args.push(`--repo=${epicRepo}`);
+  args.push("--", childId);
+  const opts: RunGitTaskOptions = { ...ctx, args, commandLabel: "epic" };
   return runGitTask(mutationJsonSchema, opts);
 }
 
 /**
- * `epic rm` needs the epic id as an argument, but "remove this task's parent" only
- * has the child id to go on — so this looks the current parent up first (same
- * fetch-then-maybe-spawn shape as editTask) and is a no-op (`null`, no spawn) when
- * the task has no parent to clear.
+ * `epic rm` needs the epic id (and, cross-repo, the epic's `--repo`) as arguments,
+ * but "remove this task's parent" only has the child id to go on — so this looks the
+ * current parent up first (same fetch-then-maybe-spawn shape as editTask) and is a
+ * no-op (`null`, no spawn) when the task has no parent to clear.
  */
 export async function clearParentIfSet(ctx: GitTaskContext, id: string): Promise<GitTaskResult<MutationJson> | null> {
   const current = (await show(ctx, id)).data;
   if (current.parent === null) return null;
-  return clearParent(ctx, current.parent, id);
+  return clearParent(ctx, current.parent, id, current.parent_repo ?? undefined);
 }
 
 /**

@@ -71,6 +71,15 @@ export const linkJsonSchema = z.object({
   target_repo: z.string().nullable(),
 });
 
+export const childJsonSchema = z.object({
+  id: z.string().nullable(),
+  display_id: z.string(),
+  title: z.string(),
+  kind: taskKindSchema,
+  status: z.string(),
+  repo: z.string().nullable(),
+});
+
 export const opEnvelopeJsonSchema = z
   .object({
     author: z.object({ name: z.string(), email: z.string() }),
@@ -98,6 +107,7 @@ export const taskJsonSchema = z.object({
   due: z.string().nullable(),
   parent: z.string().nullable(),
   parent_display_id: z.string().nullable(),
+  parent_repo: z.string().nullable(),
   links: z.array(linkJsonSchema),
   milestone: z.string().nullable(),
   comments: z.array(commentJsonSchema),
@@ -105,6 +115,7 @@ export const taskJsonSchema = z.object({
   created: z.number(),
   updated: z.number(),
   history: z.array(opEnvelopeJsonSchema).optional(),
+  children: z.array(childJsonSchema).optional(),
 });
 
 export const lsJsonSchema = z.object({

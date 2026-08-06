@@ -74,6 +74,17 @@ export interface OpEnvelopeJson {
   [k: string]: unknown;
 }
 
+export interface ChildJson {
+  /** Resolved local id for a same-repo child; null for a cross-repo one. */
+  id: string | null;
+  display_id: string;
+  title: string;
+  kind: TaskKind;
+  status: string;
+  /** Null for a same-repo child. For a cross-repo child, its registered repo name. */
+  repo: string | null;
+}
+
 export interface TaskJson {
   id: string;
   display_id: string;
@@ -93,6 +104,10 @@ export interface TaskJson {
   due: string | null;
   parent: string | null;
   parent_display_id: string | null;
+  /** Null for a same-repo parent (or none). For a cross-repo epic, the epic repo's
+   * origin remote URL (preferred) or local path (fallback) — same shape as
+   * LinkJson.target_repo. */
+  parent_repo: string | null;
   links: LinkJson[];
   milestone: string | null;
   comments: CommentJson[];
@@ -100,6 +115,8 @@ export interface TaskJson {
   created: number;
   updated: number;
   history?: OpEnvelopeJson[];
+  /** Only populated by `show` (a scan). Absent on `ls`, mutation payloads, `export`. */
+  children?: ChildJson[];
 }
 
 export interface LsJson {

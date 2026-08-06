@@ -1,5 +1,6 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate, useParams } from "react-router-dom";
 import { AppShell } from "./components/shell/AppShell";
+import { getDefaultView } from "./lib/defaultView";
 import { Home } from "./pages/Home";
 import { ProjectPage } from "./pages/ProjectPage";
 import { RepoWorkspace } from "./pages/RepoWorkspace";
@@ -13,6 +14,11 @@ import { Settings } from "./pages/Settings";
 import { TaskDialog } from "./pages/TaskDialog";
 import { TaskPage } from "./pages/TaskPage";
 
+function RepoIndexRedirect() {
+  const { repo = "" } = useParams();
+  return <Navigate to={`/r/${encodeURIComponent(repo)}/${getDefaultView()}`} replace />;
+}
+
 export const router = createBrowserRouter([
   {
     element: <AppShell />,
@@ -24,6 +30,7 @@ export const router = createBrowserRouter([
         path: "/r/:repo",
         element: <RepoWorkspace />,
         children: [
+          { index: true, element: <RepoIndexRedirect /> },
           {
             path: "board",
             element: <RepoBoardPage />,

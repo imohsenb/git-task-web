@@ -1,5 +1,6 @@
 import { Breadcrumb } from "../components/shell/Breadcrumb";
 import { AppearanceSection } from "../components/settings/AppearanceSection";
+import { DefaultViewSection } from "../components/settings/DefaultViewSection";
 import { IdentitySection } from "../components/settings/IdentitySection";
 import { ProjectsSection } from "../components/settings/ProjectsSection";
 import { ReposSection } from "../components/settings/ReposSection";
@@ -15,6 +16,7 @@ export function Settings() {
       <ReposSection />
       <ProjectsSection />
       <IdentitySection />
+      <DefaultViewSection />
       <AppearanceSection />
     </div>
   );

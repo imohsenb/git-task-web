@@ -8,12 +8,19 @@ import { useRegistry, useRepoTasks } from "../../lib/queries";
 const LINK_KINDS: LinkKind[] = ["blocks", "relates", "dup"];
 const THIS_REPO = "";
 
-/** `link.target_repo` (from the CLI) is an absolute path; registry entries are the
- * source of truth for turning that back into the name the rest of the UI uses. Falls
- * back to the path's basename so an unregistered/moved repo still renders something
- * sane instead of a raw absolute path. */
-function repoLabel(path: string, registryRepos: { name: string; path: string }[]): string {
-  return registryRepos.find((r) => r.path === path)?.name ?? path.split("/").filter(Boolean).pop() ?? path;
+/** `link.target_repo`/`task.parent_repo` (from the CLI) is a registered repo's origin
+ * remote URL when it has one, else an absolute path — registry entries are the source
+ * of truth for turning either form back into the name the rest of the UI uses. Falls
+ * back to the identifier's basename so an unregistered/moved repo still renders
+ * something sane instead of a raw URL/path. */
+export function repoLabel(
+  identifier: string,
+  registryRepos: { name: string; path: string; remotes?: { url: string | null }[] | null }[],
+): string {
+  const match = registryRepos.find(
+    (r) => r.path === identifier || r.remotes?.some((remote) => remote.url === identifier),
+  );
+  return match?.name ?? identifier.split("/").filter(Boolean).pop() ?? identifier;
 }
 
 export function LinksSection({ repo, task }: { repo: string; task: TaskJson }) {

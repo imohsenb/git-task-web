@@ -67,7 +67,10 @@ const editTaskBodySchema = z.object({
 const statusBodySchema = z.object({ status: statusValueSchema });
 const commentBodySchema = z.object({ text: z.string().min(1).max(TEXT_MAX_LEN) });
 const labelBodySchema = z.object({ label: z.string().min(1).max(LABEL_MAX_LEN) });
-const parentBodySchema = z.object({ epicId: z.string().min(1).max(NAME_MAX_LEN) });
+const parentBodySchema = z.object({
+  epicId: z.string().min(1).max(NAME_MAX_LEN),
+  epicRepo: z.string().min(1).max(NAME_MAX_LEN).optional(),
+});
 const linkBodySchema = z.object({
   kind: linkKindSchema,
   target: z.string().min(1).max(NAME_MAX_LEN),
@@ -198,7 +201,7 @@ export function registerTaskMutationsRoutes(rawApp: FastifyInstance, env: Resolv
     { schema: { params: repoTaskParamSchema, body: parentBodySchema } },
     async (request) => {
       const { data, warnings } = await write(request.params.name, (ctx) =>
-        setParent(ctx, request.body.epicId, request.params.id),
+        setParent(ctx, request.body.epicId, request.params.id, request.body.epicRepo),
       );
       return { data, warnings };
     },

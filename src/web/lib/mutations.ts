@@ -251,7 +251,8 @@ export function useRemoveLabel(repo: string, id: string) {
 export function useSetParent(repo: string, id: string) {
   const { onError, applyTask } = useMutationEffects(repo);
   return useMutation({
-    mutationFn: (epicId: string) => apiPut<MutationJson>(taskPath(repo, id, "/parent"), { epicId }),
+    mutationFn: ({ epicId, epicRepo }: { epicId: string; epicRepo?: string }) =>
+      apiPut<MutationJson>(taskPath(repo, id, "/parent"), { epicId, epicRepo }),
     onSuccess: (result) => {
       if (result) applyTask(result.data.task);
     },

@@ -147,7 +147,7 @@ function RepoRow({
   return (
     <tr>
       <td className="px-3 py-2">
-        <Link to={`/r/${encodeURIComponent(repo.name)}/list`} className="font-medium text-ink-1 hover:text-brand-ink">
+        <Link to={`/r/${encodeURIComponent(repo.name)}`} className="font-medium text-ink-1 hover:text-brand-ink">
           {repo.name}
         </Link>
         {repo.openable === false && (

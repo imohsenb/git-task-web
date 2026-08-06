@@ -51,7 +51,7 @@ export function AddRepoDialog({ onClose }: { onClose: () => void }) {
 
   function finish(registeredName: string) {
     onClose();
-    navigate(`/r/${encodeURIComponent(registeredName)}/list`);
+    navigate(`/r/${encodeURIComponent(registeredName)}`);
   }
 
   return (

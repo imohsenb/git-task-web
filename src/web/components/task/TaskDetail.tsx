@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Link2 } from "lucide-react";
+import { toast } from "sonner";
 import type { TaskJson } from "../../../shared/contract";
 import { Pill } from "../ui/Pill";
 import { Combobox } from "../ui/Combobox";
-import { TaskListRow } from "../list/TaskListRow";
 import { kindSemantic, prioritySemantic, statusSemantic } from "../../lib/status";
 import { avatarFor } from "../../lib/avatar";
 import { relativeTime } from "../../lib/format";
@@ -33,6 +35,14 @@ export function TaskDetail({ repo, task }: { repo: string; task: TaskJson }) {
   const assigneeAvatar = task.assignee ? avatarFor(task.assignee, task.assignee_name) : null;
   const reporterAvatar = avatarFor(task.reporter, task.reporter_name);
 
+  function copyLink() {
+    const url = `${window.location.origin}/t/${encodeURIComponent(repo)}/${encodeURIComponent(task.display_id)}`;
+    navigator.clipboard.writeText(url).then(
+      () => toast.success("Link copied"),
+      () => toast.error("Couldn't copy link"),
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
       <div className="min-w-0 flex-1 space-y-6">
@@ -41,20 +51,31 @@ export function TaskDetail({ repo, task }: { repo: string; task: TaskJson }) {
             <span className="font-mono text-micro text-ink-4">{task.display_id}</span>
             {task.deleted && <Pill sem="danger">deleted</Pill>}
           </div>
-          {!task.deleted && (
-            <div className="flex shrink-0 items-center gap-1">
-              {!isEditing && (
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(true)}
-                  className="text-micro text-ink-4 hover:text-ink-1"
-                >
-                  Edit
-                </button>
-              )}
-              <TaskDangerMenu repo={repo} task={task} />
-            </div>
-          )}
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              onClick={copyLink}
+              title="Copy link to this task"
+              className="flex items-center gap-1 text-micro text-ink-4 hover:text-ink-1"
+            >
+              <Link2 size={13} />
+              Copy link
+            </button>
+            {!task.deleted && (
+              <>
+                {!isEditing && (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(true)}
+                    className="text-micro text-ink-4 hover:text-ink-1"
+                  >
+                    Edit
+                  </button>
+                )}
+                <TaskDangerMenu repo={repo} task={task} />
+              </>
+            )}
+          </div>
         </div>
 
         {isEditing ? (
@@ -157,24 +178,42 @@ export function TaskDetail({ repo, task }: { repo: string; task: TaskJson }) {
 }
 
 /**
- * GTWEB-8384b5c4: "doesn't show the list of epic's children". `ls --parent=<id>`
- * already exists for exactly this — verified live, no backend change needed. Gated
- * at the call site (not a self-return-null here) so the query never fires for a
- * non-epic task.
+ * GTWEB-8384b5c4: "doesn't show the list of epic's children". GTWEB-913a480c:
+ * `ls --parent=<id>` (even `--all`) only ever matches a same-repo parent — it can't
+ * see a cross-repo child at all, so it was silently dropping them. `show`'s
+ * `children[]` is the only place the CLI actually resolves cross-repo children (a
+ * scan against every repo registered under the same project — see
+ * docs/cli-json-contract.md), and `task` here already comes from `show` (useTask),
+ * so this just reads it off the prop instead of firing its own query. Gated at the
+ * call site (not a self-return-null here) so it never runs for a non-epic task.
  */
 function EpicChildrenSection({ repo, task }: { repo: string; task: TaskJson }) {
-  const { data, isLoading } = useRepoTasks(repo, { parent: task.display_id });
-  const children = data?.data.repos[0]?.tasks ?? [];
+  const children = task.children ?? [];
 
   return (
     <div>
-      <h3 className="mb-2 text-micro uppercase text-ink-4">Children{data ? ` (${children.length})` : ""}</h3>
-      {isLoading && <p className="text-sm text-ink-4">Loading…</p>}
-      {data && children.length === 0 && <p className="text-sm text-ink-4">No child tasks yet.</p>}
+      <h3 className="mb-2 text-micro uppercase text-ink-4">Children ({children.length})</h3>
+      {children.length === 0 && <p className="text-sm text-ink-4">No child tasks yet.</p>}
       {children.length > 0 && (
         <div className="divide-y divide-line overflow-hidden rounded-card border border-line bg-surface">
           {children.map((child) => (
-            <TaskListRow key={child.id} repo={repo} task={child} />
+            <Link
+              key={`${child.repo ?? repo}-${child.display_id}`}
+              to={`/t/${encodeURIComponent(child.repo ?? repo)}/${encodeURIComponent(child.display_id)}`}
+              className="flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-sunk"
+            >
+              <Pill sem={kindSemantic(child.kind)}>{child.kind}</Pill>
+              <span className="w-24 shrink-0 truncate font-mono text-micro text-ink-4">{child.display_id}</span>
+              <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink-1">
+                {child.title || "(untitled)"}
+              </span>
+              <Pill sem={statusSemantic(child.status)}>{child.status}</Pill>
+              {child.repo && (
+                <span className="shrink-0 rounded-pill bg-neutral-tint px-1.5 py-0.5 text-micro text-neutral-ink">
+                  {child.repo}
+                </span>
+              )}
+            </Link>
           ))}
         </div>
       )}

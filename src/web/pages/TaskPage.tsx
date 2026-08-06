@@ -12,7 +12,7 @@ export function TaskPage() {
       <Breadcrumb
         items={[
           { label: "Home", to: "/" },
-          { label: repo, to: `/r/${encodeURIComponent(repo)}/list` },
+          { label: repo, to: `/r/${encodeURIComponent(repo)}` },
           { label: displayId },
         ]}
       />

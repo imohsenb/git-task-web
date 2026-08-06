@@ -69,9 +69,23 @@ export interface TaskJson {
   affected_versions: string[];      // sorted, deduped; set-at-creation only, no edit/add/rm CLI path yet
   due: string | null;               // opaque, unparsed
   parent: string | null; parent_display_id: string | null;
+  // parent_repo: null for a same-repo parent (or none). For a cross-repo epic
+  // (`epic <epic> add <child> --repo <name|path|url>`), the epic repo's origin remote URL
+  // (preferred) or local path (fallback) — same shape as LinkJson.target_repo.
+  parent_repo: string | null;
   links: LinkJson[]; milestone: string | null; comments: CommentJson[];
   deleted: boolean; created: number; updated: number;      // unix seconds
   history?: OpEnvelopeJson[];       // on `show`; on `ls` only with --with-history
+  // children: only populated by `show` (a scan; nothing on the epic points at its
+  // children). Absent/omitted on `ls`, mutation payloads, and `export`.
+  children?: ChildJson[];
+}
+
+export interface ChildJson {
+  id: string | null;                // resolved local id for a same-repo child; null cross-repo
+  display_id: string;               // same-repo: under this repo's key. cross-repo: under its own repo's key
+  title: string; kind: TaskKind; status: string;
+  repo: string | null;              // null same-repo; cross-repo: the child's registered repo name
 }
 ```
 
@@ -178,6 +192,12 @@ Ran against `git-task 1.0.0` in a scratch repo on 2026-08-03:
 - `ls --format json` -> `CliOk<LsJson>`, `scope.mode: "here"`, `statuses: ["todo"]`.
 - `repos --format json` -> `CliOk<RegistryJson>`, shallow fields null as documented.
 - Validation error (`new` missing `--desc`) -> `CliErr` with `kind: "validation"`, `context.missing: ["description"]`, exit 1, still valid JSON on stdout.
+
+Ran against `git-task 1.0.0` (post cross-repo-epic feature) on 2026-08-06:
+
+- `epic <epic> add <child> --repo <name>` from the child's repo -> `CliOk<MutationJson>`, `task.parent_repo` set to the epic repo's resolved identifier, `task.parent_display_id` the raw epic id as typed.
+- `show <epic> --format json` -> `children[]` includes same-repo children (`repo: null`) and, when this repo is registered, cross-repo children too (`repo: "<registered name>"`, `id: null`).
+- `ls --parent=<epic> --format json` (even `--all`) does **not** surface cross-repo children — it filters same-repo only; `show`'s scan is the only way to list them.
 
 Backend and frontend code against these shapes directly; no fixture recording
 needed since the live binary already implements the contract.

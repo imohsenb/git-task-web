@@ -19,7 +19,7 @@ export function TaskDangerMenu({ repo, task }: { repo: string; task: TaskJson })
 
   function afterRemoved() {
     setConfirming(null);
-    navigate(`/r/${encodeURIComponent(repo)}/list`);
+    navigate(`/r/${encodeURIComponent(repo)}`);
   }
 
   return (
