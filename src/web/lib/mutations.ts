@@ -63,7 +63,7 @@ function useApiErrorHandler() {
 }
 
 /** Shared by every task mutation hook below. `applyTask`: pushes the mutation's
- * returned task straight into the task-detail cache (drawer/full page reflect the
+ * returned task straight into the task-detail cache (dialog/full page reflect the
  * write with no refetch round-trip) and invalidates every list/board/table query for
  * the repo so the card behind it updates too. */
 function useMutationEffects(repo: string) {

@@ -8,7 +8,7 @@ import { RepoListPage } from "./pages/RepoList";
 import { RepoSyncPage } from "./pages/RepoSync";
 import { RepoTablePage } from "./pages/RepoTable";
 import { Settings } from "./pages/Settings";
-import { TaskDrawer } from "./pages/TaskDrawer";
+import { TaskDialog } from "./pages/TaskDialog";
 import { TaskPage } from "./pages/TaskPage";
 
 export const router = createBrowserRouter([
@@ -25,17 +25,17 @@ export const router = createBrowserRouter([
           {
             path: "board",
             element: <RepoBoardPage />,
-            children: [{ path: "t/:displayId", element: <TaskDrawer /> }],
+            children: [{ path: "t/:displayId", element: <TaskDialog /> }],
           },
           {
             path: "list",
             element: <RepoListPage />,
-            children: [{ path: "t/:displayId", element: <TaskDrawer /> }],
+            children: [{ path: "t/:displayId", element: <TaskDialog /> }],
           },
           {
             path: "table",
             element: <RepoTablePage />,
-            children: [{ path: "t/:displayId", element: <TaskDrawer /> }],
+            children: [{ path: "t/:displayId", element: <TaskDialog /> }],
           },
           { path: "sync", element: <RepoSyncPage /> },
         ],

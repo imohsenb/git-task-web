@@ -64,7 +64,7 @@ export function RepoBoardPage() {
   const byStatus = useMemo(() => groupByStatus(filteredTasks), [filteredTasks]);
   const activeTask = activeId ? filteredTasks.find((t) => t.id === activeId) : undefined;
 
-  // 8px activation distance so a plain click still opens the drawer instead of
+  // 8px activation distance so a plain click still opens the task dialog instead of
   // always starting a drag (§4.4 "onDragStart cancels in-flight refetches").
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
