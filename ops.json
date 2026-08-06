@@ -5,7 +5,7 @@
       "email": "imohsen.b@gmail.com"
     },
     "timestamp": 1786028779,
-    "op": "SetStatus",
-    "status": "done"
+    "op": "AddComment",
+    "text": "Converted the side drawer to a centered dialog (TaskDialog.tsx) and added an epic-children list (ls --parent, already supported by the CLI) shown when a task's kind is epic. TaskDetail reflows into two columns (main content + comments left, compact metadata sidebar right) to use the wider dialog."
   }
 ]
