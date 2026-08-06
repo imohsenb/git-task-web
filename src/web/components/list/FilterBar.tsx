@@ -19,6 +19,7 @@ export function FilterBar({
     <div className="mb-4 flex flex-wrap items-center gap-3">
       <input
         type="search"
+        data-search-input
         placeholder={searchPlaceholder}
         value={filters.q ?? ""}
         onChange={(e) => setFilters({ q: e.target.value })}

@@ -18,7 +18,8 @@ export function ProjectPage() {
       <h1 className="mt-3 text-display font-display tracking-display text-ink-1">{project}</h1>
       <p className="mt-2 text-sm text-ink-3">
         {repoCount} repo{repoCount === 1 ? "" : "s"}
-        {data ? ` · ${data.data.total} tasks` : ""} · read-only aggregate — drag lands with Board in Phase 3
+        {data ? ` · ${data.data.total} tasks` : ""} · read-only aggregate across repos — open a repo's own board to
+        drag between statuses
       </p>
 
       {data && <WarningStrip warnings={data.warnings} />}

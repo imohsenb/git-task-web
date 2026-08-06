@@ -2,9 +2,11 @@ import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { useLiveEvents } from "../../lib/liveEvents";
+import { useFocusSearchShortcut } from "../../lib/keyboard";
 
 export function AppShell() {
   useLiveEvents();
+  useFocusSearchShortcut();
 
   return (
     <div className="min-h-screen bg-canvas p-4">

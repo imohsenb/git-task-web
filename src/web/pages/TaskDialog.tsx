@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { X } from "lucide-react";
 import { useTask } from "../lib/queries";
@@ -14,6 +15,14 @@ export function TaskDialog() {
   const { data, isLoading, error } = useTask(repo, displayId);
 
   const close = () => navigate(-1);
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") navigate(-1);
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [navigate]);
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-ink-1/30 p-4">

@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
 /** Shared overlay+card shell — IdentityMissingDialog, ConfirmDialog, NewTaskDialog,
  * and the epic/link pickers all need the same "modal over the app" chrome. */
@@ -14,6 +14,14 @@ export function Modal({
   children: ReactNode;
   maxWidthClassName?: string;
 }) {
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink-1/30 px-4">
       <div className={`w-full ${maxWidthClassName} max-h-[85vh] overflow-y-auto rounded-card bg-shell p-6 shadow-pop`}>

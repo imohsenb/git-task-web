@@ -22,6 +22,8 @@ export function BoardColumn({
   return (
     <div
       ref={setNodeRef}
+      data-board-column
+      data-status={status}
       className={[
         "flex h-full min-w-[240px] max-w-[22rem] flex-1 flex-col rounded-well p-2.5 transition-colors",
         isOver ? "bg-brand-soft" : "bg-surface-sunk",

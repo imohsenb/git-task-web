@@ -4,11 +4,14 @@ import { Breadcrumb } from "../components/shell/Breadcrumb";
 import { MetaBlock } from "../components/meta/MetaBlock";
 import { NewTaskDialog } from "../components/task/NewTaskDialog";
 import { useRegistry } from "../lib/queries";
+import { useNewTaskShortcut } from "../lib/keyboard";
 
 const TABS = [
   { view: "board", label: "Board" },
   { view: "list", label: "List" },
   { view: "table", label: "Table" },
+  { view: "milestones", label: "Milestones" },
+  { view: "members", label: "Members" },
   { view: "sync", label: "Sync" },
 ] as const;
 
@@ -17,6 +20,7 @@ export function RepoWorkspace() {
   const { data } = useRegistry();
   const repoEntry = data?.data.repos.find((r) => r.name === repo);
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
+  useNewTaskShortcut(() => setIsNewTaskOpen(true));
 
   return (
     <div className="flex h-full flex-col">

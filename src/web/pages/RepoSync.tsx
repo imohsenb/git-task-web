@@ -24,7 +24,15 @@ export function RepoSyncPage() {
   const push = usePushRepo(repo);
   const pull = usePullRepo(repo);
 
-  if (registry && remotes.length === 0) {
+  if (!registry) {
+    return (
+      <div className="px-8 py-6">
+        <p className="text-sm text-ink-4">Loading…</p>
+      </div>
+    );
+  }
+
+  if (remotes.length === 0) {
     return (
       <div className="px-8 py-6">
         <p className="text-sm text-ink-3">

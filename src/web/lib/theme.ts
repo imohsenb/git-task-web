@@ -21,15 +21,20 @@ function persistTheme(theme: Theme): void {
 }
 
 /** The boot script already set `data-theme` before first paint, so the initial
- * state here just mirrors the DOM rather than re-applying it (no flash). */
-export function useTheme(): [Theme, () => void] {
+ * state here just mirrors the DOM rather than re-applying it (no flash). Third
+ * element is an explicit setter for the Settings page's two-way chooser —
+ * `ThemeToggle` only ever needs the toggle, so it just ignores it. */
+export function useTheme(): [Theme, () => void, (next: Theme) => void] {
   const [theme, setTheme] = useState<Theme>(() => resolveInitialTheme());
 
-  function toggle() {
-    const next: Theme = theme === "dark" ? "light" : "dark";
+  function apply(next: Theme) {
     persistTheme(next);
     setTheme(next);
   }
 
-  return [theme, toggle];
+  function toggle() {
+    apply(theme === "dark" ? "light" : "dark");
+  }
+
+  return [theme, toggle, apply];
 }

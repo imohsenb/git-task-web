@@ -8,7 +8,8 @@ import { relativeTime } from "../../lib/format";
 
 export function TaskListRow({ repo, task }: { repo: string; task: TaskJson }) {
   const location = useLocation();
-  const view = location.pathname.includes("/board") ? "board" : location.pathname.includes("/table") ? "table" : "list";
+  const tabSegment = location.pathname.split("/")[3];
+  const view = tabSegment === "board" || tabSegment === "table" || tabSegment === "milestones" ? tabSegment : "list";
   const avatar = task.assignee ? avatarFor(task.assignee, task.assignee_name) : null;
 
   return (

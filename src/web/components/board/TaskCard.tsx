@@ -33,6 +33,7 @@ export function TaskCard({ repo, task, childCount }: { repo: string; task: TaskJ
     >
       <Link
         to={`/r/${encodeURIComponent(repo)}/board/t/${encodeURIComponent(task.display_id)}`}
+        data-board-card
         className={[
           "block rounded-card bg-surface p-3 shadow-card transition-shadow hover:shadow-lift",
           task.deleted ? "opacity-55" : "",
