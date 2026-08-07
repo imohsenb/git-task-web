@@ -28,14 +28,15 @@
     "execa": "^9.5.2",
     "fastify": "^5.2.1",
     "fastify-type-provider-zod": "^4.0.2",
+    "marked": "^18.0.9",
     "open": "^10.1.0",
     "pino": "^9.6.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.0.6",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/utilities": "^3.2.2",
+    "@tailwindcss/vite": "^4.0.6",
     "@tanstack/react-query": "^5.101.4",
     "@tanstack/react-table": "^8.21.3",
     "@types/node": "^22.13.1",

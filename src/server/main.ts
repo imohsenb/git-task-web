@@ -16,6 +16,7 @@ import { registerRegistryMutationsRoutes } from "./routes/registryMutations.js";
 import { registerSyncRoutes } from "./routes/sync.js";
 import { registerTasksRoutes } from "./routes/tasks.js";
 import { registerTaskMutationsRoutes } from "./routes/taskMutations.js";
+import { registerPrsRoutes } from "./routes/prs.js";
 
 const SSE_POLL_MS = 5_000;
 
@@ -60,6 +61,7 @@ export async function buildServer(opts: BuildServerOptions = {}) {
   registerRegistryMutationsRoutes(app, env);
   registerTasksRoutes(app, env);
   registerTaskMutationsRoutes(app, env);
+  registerPrsRoutes(app, env);
   registerSyncRoutes(app, env);
   registerEventsRoute(app);
 

@@ -3,6 +3,7 @@ import type { TaskJson } from "../../../shared/contract";
 import { avatarFor } from "../../lib/avatar";
 import { relativeTime } from "../../lib/format";
 import { useAddComment, useEditComment } from "../../lib/mutations";
+import { MarkdownView } from "../ui/MarkdownView";
 
 export function CommentsSection({ repo, task }: { repo: string; task: TaskJson }) {
   const addComment = useAddComment(repo, task.display_id);
@@ -88,7 +89,7 @@ export function CommentsSection({ repo, task }: { repo: string; task: TaskJson }
                     </div>
                   </form>
                 ) : (
-                  <p className="whitespace-pre-wrap text-sm text-ink-2">{comment.text}</p>
+                  <MarkdownView content={comment.text} />
                 )}
               </li>
             );

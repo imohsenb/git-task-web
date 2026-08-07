@@ -289,3 +289,24 @@ export interface MetaJson {
   cli: { bin: string; version: string };
   identity: IdentityInfoJson;
 }
+
+export type PrState = "open" | "merged" | "closed";
+export type PrPlatform = "github" | "gitlab" | "unknown";
+
+export interface PullRequestJson {
+  id: string;
+  title: string;
+  url: string;
+  state: PrState;
+  provider: PrPlatform;
+}
+
+export interface TaskPrsResponseJson {
+  platform: PrPlatform | null;
+  providerName: string | null;
+  cliAvailable: boolean;
+  cliName: string | null;
+  prs: PullRequestJson[];
+  error?: string | null;
+}
+

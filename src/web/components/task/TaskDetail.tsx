@@ -11,9 +11,11 @@ import { relativeTime } from "../../lib/format";
 import { useSetStatus } from "../../lib/mutations";
 import { useRepoTasks } from "../../lib/queries";
 import { deriveColumns } from "../../lib/columns";
+import { MarkdownView } from "../ui/MarkdownView";
 import { TaskEditForm } from "./TaskEditForm";
 import { LabelsSection } from "./LabelsSection";
 import { LinksSection } from "./LinksSection";
+import { DevelopmentSection } from "./DevelopmentSection";
 import { ParentSection } from "./ParentSection";
 import { CommentsSection } from "./CommentsSection";
 import { TaskDangerMenu } from "./TaskDangerMenu";
@@ -81,15 +83,22 @@ export function TaskDetail({ repo, task }: { repo: string; task: TaskJson }) {
         {isEditing ? (
           <TaskEditForm repo={repo} task={task} onDone={() => setIsEditing(false)} />
         ) : (
-          <>
+          <div className="space-y-3">
             <h2 className={["text-xl font-semibold text-ink-1", task.deleted ? "line-through" : ""].join(" ")}>
               {task.title}
             </h2>
-            {task.description && <p className="whitespace-pre-wrap text-sm text-ink-2">{task.description}</p>}
-          </>
+            {task.description && (
+              <div className="rounded-card border border-line bg-surface-sunk/40 p-4 text-sm">
+                <MarkdownView content={task.description} />
+              </div>
+            )}
+          </div>
         )}
 
         {task.kind === "epic" && <EpicChildrenSection repo={repo} task={task} />}
+
+        <LinksSection repo={repo} task={task} />
+        <DevelopmentSection repo={repo} task={task} />
 
         <CommentsSection repo={repo} task={task} />
       </div>
@@ -171,7 +180,6 @@ export function TaskDetail({ repo, task }: { repo: string; task: TaskJson }) {
 
         <LabelsSection repo={repo} task={task} />
         <VersionsSection task={task} />
-        <LinksSection repo={repo} task={task} />
       </div>
     </div>
   );
