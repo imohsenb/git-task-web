@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Plus } from "lucide-react";
 import type { LinkKind, TaskJson } from "../../../shared/contract";
 import { Pill } from "../ui/Pill";
 import { Combobox } from "../ui/Combobox";
@@ -52,7 +53,19 @@ export function LinksSection({ repo, task }: { repo: string; task: TaskJson }) {
 
   return (
     <div>
-      <h3 className="mb-2 text-micro uppercase text-ink-4">Links</h3>
+      <div className="mb-2 flex items-center justify-between">
+        <h3 className="text-micro uppercase text-ink-4">Links</h3>
+        {!isAdding && (
+          <button
+            type="button"
+            onClick={() => setIsAdding(true)}
+            title="Add link"
+            className="text-ink-4 hover:text-ink-1"
+          >
+            <Plus size={14} />
+          </button>
+        )}
+      </div>
 
       {task.links.length > 0 && (
         <ul className="mb-2 space-y-1 text-sm">
@@ -129,11 +142,9 @@ export function LinksSection({ repo, task }: { repo: string; task: TaskJson }) {
             Cancel
           </button>
         </div>
-      ) : (
-        <button type="button" onClick={() => setIsAdding(true)} className="text-micro text-ink-4 hover:text-ink-1">
-          + Add link
-        </button>
-      )}
+      ) : task.links.length === 0 ? (
+        <p className="text-micro text-ink-4">No linked tasks found.</p>
+      ) : null}
     </div>
   );
 }

@@ -288,3 +288,24 @@ export const whoamiJsonSchema = z.object({
   global: identityInfoJsonSchema,
   effective: identityInfoJsonSchema,
 });
+
+export const prStateSchema = z.enum(["open", "merged", "closed"]);
+export const prPlatformSchema = z.enum(["github", "gitlab", "unknown"]);
+
+export const pullRequestJsonSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  url: z.string(),
+  state: prStateSchema,
+  provider: prPlatformSchema,
+});
+
+export const taskPrsResponseJsonSchema = z.object({
+  platform: prPlatformSchema.nullable(),
+  providerName: z.string().nullable(),
+  cliAvailable: z.boolean(),
+  cliName: z.string().nullable(),
+  prs: z.array(pullRequestJsonSchema),
+  error: z.string().nullable().optional(),
+});
+

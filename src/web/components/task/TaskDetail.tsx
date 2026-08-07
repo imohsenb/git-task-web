@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Link2 } from "lucide-react";
+import { Copy, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import type { TaskJson } from "../../../shared/contract";
 import { Pill } from "../ui/Pill";
@@ -11,12 +11,22 @@ import { relativeTime } from "../../lib/format";
 import { useSetStatus } from "../../lib/mutations";
 import { useRepoTasks } from "../../lib/queries";
 import { deriveColumns } from "../../lib/columns";
+import { MarkdownView } from "../ui/MarkdownView";
 import { TaskEditForm } from "./TaskEditForm";
+import { TaskDangerMenu } from "./TaskDangerMenu";
 import { LabelsSection } from "./LabelsSection";
 import { LinksSection } from "./LinksSection";
+import { DevelopmentSection } from "./DevelopmentSection";
 import { ParentSection } from "./ParentSection";
 import { CommentsSection } from "./CommentsSection";
-import { TaskDangerMenu } from "./TaskDangerMenu";
+
+export function copyTaskLink(repo: string, task: TaskJson) {
+  const url = `${window.location.origin}/t/${encodeURIComponent(repo)}/${encodeURIComponent(task.display_id)}`;
+  navigator.clipboard.writeText(url).then(
+    () => toast.success("Link copied"),
+    () => toast.error("Couldn't copy link"),
+  );
+}
 
 /**
  * Shared by the dialog and the full-page route. Every field below is user-controlled
@@ -30,66 +40,59 @@ import { TaskDangerMenu } from "./TaskDangerMenu";
  * a compact metadata list right — GTWEB-8384b5c4 (needed more width than the old
  * 480px drawer gave it to be worth doing; single column below `lg`).
  */
-export function TaskDetail({ repo, task }: { repo: string; task: TaskJson }) {
-  const [isEditing, setIsEditing] = useState(false);
+export function TaskDetail({
+  repo,
+  task,
+  hideHeader = false,
+  isEditing: controlledIsEditing,
+  onEditToggle,
+}: {
+  repo: string;
+  task: TaskJson;
+  /** Dialog owns the display_id/title/actions row in its own top bar instead — see TaskDialog. */
+  hideHeader?: boolean;
+  isEditing?: boolean;
+  onEditToggle?: (next: boolean) => void;
+}) {
+  const [uncontrolledIsEditing, setUncontrolledIsEditing] = useState(false);
+  const isEditing = controlledIsEditing ?? uncontrolledIsEditing;
+  const setIsEditing = onEditToggle ?? setUncontrolledIsEditing;
+
   const assigneeAvatar = task.assignee ? avatarFor(task.assignee, task.assignee_name) : null;
   const reporterAvatar = avatarFor(task.reporter, task.reporter_name);
-
-  function copyLink() {
-    const url = `${window.location.origin}/t/${encodeURIComponent(repo)}/${encodeURIComponent(task.display_id)}`;
-    navigator.clipboard.writeText(url).then(
-      () => toast.success("Link copied"),
-      () => toast.error("Couldn't copy link"),
-    );
-  }
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
       <div className="min-w-0 flex-1 space-y-6">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-micro text-ink-4">{task.display_id}</span>
-            {task.deleted && <Pill sem="danger">deleted</Pill>}
-          </div>
-          <div className="flex shrink-0 items-center gap-1">
-            <button
-              type="button"
-              onClick={copyLink}
-              title="Copy link to this task"
-              className="flex items-center gap-1 text-micro text-ink-4 hover:text-ink-1"
-            >
-              <Link2 size={13} />
-              Copy link
-            </button>
-            {!task.deleted && (
-              <>
-                {!isEditing && (
-                  <button
-                    type="button"
-                    onClick={() => setIsEditing(true)}
-                    className="text-micro text-ink-4 hover:text-ink-1"
-                  >
-                    Edit
-                  </button>
-                )}
-                <TaskDangerMenu repo={repo} task={task} />
-              </>
-            )}
-          </div>
-        </div>
+        {!hideHeader && (
+          <TaskDetailHeader
+            repo={repo}
+            task={task}
+            isEditing={isEditing}
+            onEdit={() => setIsEditing(true)}
+            className="border-b border-line pb-3.5"
+          />
+        )}
 
         {isEditing ? (
           <TaskEditForm repo={repo} task={task} onDone={() => setIsEditing(false)} />
         ) : (
-          <>
+          <div className="space-y-3">
             <h2 className={["text-xl font-semibold text-ink-1", task.deleted ? "line-through" : ""].join(" ")}>
               {task.title}
             </h2>
-            {task.description && <p className="whitespace-pre-wrap text-sm text-ink-2">{task.description}</p>}
-          </>
+            {task.description && (
+              <div className="rounded-card border border-line bg-surface-sunk/40 p-4 text-sm">
+                <MarkdownView content={task.description} />
+              </div>
+            )}
+          </div>
         )}
 
         {task.kind === "epic" && <EpicChildrenSection repo={repo} task={task} />}
+
+        <LinksSection repo={repo} task={task} />
+        <DevelopmentSection repo={repo} task={task} />
 
         <CommentsSection repo={repo} task={task} />
       </div>
@@ -171,7 +174,59 @@ export function TaskDetail({ repo, task }: { repo: string; task: TaskJson }) {
 
         <LabelsSection repo={repo} task={task} />
         <VersionsSection task={task} />
-        <LinksSection repo={repo} task={task} />
+      </div>
+    </div>
+  );
+}
+
+/** Display_id + deleted pill + copy/edit/danger actions. Shared so the dialog's top
+ * bar and the full-page route render the exact same row instead of two divergent
+ * copies — GTWEB: dialog used to duplicate this whole row inside the scrollable body. */
+export function TaskDetailHeader({
+  repo,
+  task,
+  isEditing,
+  onEdit,
+  className,
+}: {
+  repo: string;
+  task: TaskJson;
+  isEditing: boolean;
+  onEdit: () => void;
+  className?: string;
+}) {
+  return (
+    <div className={["flex items-center justify-between gap-2", className ?? ""].join(" ")}>
+      <div className="flex min-w-0 flex-wrap items-center gap-2">
+        <span className="shrink-0 font-mono text-base font-bold text-ink-1">{task.display_id}</span>
+        {task.deleted && <Pill sem="danger">deleted</Pill>}
+      </div>
+      <div className="flex shrink-0 items-center gap-1">
+        <button
+          type="button"
+          onClick={() => copyTaskLink(repo, task)}
+          title="Copy link"
+          aria-label="Copy link"
+          className="rounded-control p-1.5 text-ink-4 transition-colors hover:bg-surface-sunk hover:text-ink-1"
+        >
+          <Copy size={16} />
+        </button>
+        {!task.deleted && (
+          <>
+            {!isEditing && (
+              <button
+                type="button"
+                onClick={onEdit}
+                title="Edit task"
+                aria-label="Edit task"
+                className="rounded-control p-1.5 text-ink-4 transition-colors hover:bg-surface-sunk hover:text-ink-1"
+              >
+                <Pencil size={16} />
+              </button>
+            )}
+            <TaskDangerMenu repo={repo} task={task} />
+          </>
+        )}
       </div>
     </div>
   );

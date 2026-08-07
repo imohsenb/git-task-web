@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiGet, type LsFilters } from "./api";
 import { queryKeys } from "./queryKeys";
-import type { LsJson, MetaJson, RegistryJson, RepoConfigJson, TaskJson } from "../../shared/contract";
+import type { LsJson, MetaJson, RegistryJson, RepoConfigJson, TaskJson, TaskPrsResponseJson } from "../../shared/contract";
 
 export function useMeta() {
   return useQuery({
@@ -56,3 +56,16 @@ export function useFields(repo: string) {
     enabled: repo.length > 0,
   });
 }
+
+export function useTaskPrs(repo: string, displayId: string) {
+  return useQuery({
+    queryKey: queryKeys.taskPrs(repo, displayId),
+    queryFn: () =>
+      apiGet<TaskPrsResponseJson>(
+        `/repos/${encodeURIComponent(repo)}/tasks/${encodeURIComponent(displayId)}/prs`,
+      ),
+    staleTime: 60_000,
+    enabled: repo.length > 0 && displayId.length > 0,
+  });
+}
+
