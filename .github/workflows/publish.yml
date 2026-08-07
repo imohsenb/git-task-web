@@ -8,7 +8,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       id-token: write
     steps:
       - uses: actions/checkout@v4
@@ -44,3 +44,14 @@ jobs:
         run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Tag and create GitHub Release
+        if: steps.check.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          gh release create "v$PKG_VERSION" \
+            --title "v$PKG_VERSION" \
+            --generate-notes \
+            --target "$GITHUB_SHA"
