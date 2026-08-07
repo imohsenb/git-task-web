@@ -1,4 +1,7 @@
-# git-task-web
+<p align="center">
+  <img src="src/web/public/favicon.svg" width="72" height="72" alt="Git Task logo" />
+</p>
+<h1 align="center">Git Task</h1>
 
 A local web interface for [git-task](https://github.com/) — the git-native task manager. It's a thin
 Fastify + React layer over the real `git-task` CLI: every read is a `--format json` invocation, every

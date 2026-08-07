@@ -11,7 +11,10 @@ export function Sidebar() {
   return (
     <nav className="w-[268px] shrink-0 border-r border-line bg-shell flex flex-col">
       <div className="h-[64px] flex items-center justify-between px-5">
-        <span className="text-lg font-display font-display tracking-display text-ink-1">git-task</span>
+        <span className="flex items-center gap-2">
+          <img src="/favicon.svg" alt="" width={24} height={24} className="rounded-[6px]" />
+          <span className="text-lg font-display font-display tracking-display text-ink-1">Git Task</span>
+        </span>
         <button
           type="button"
           onClick={() => setShowAddRepo(true)}
