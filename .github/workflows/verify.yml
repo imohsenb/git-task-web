@@ -1,0 +1,50 @@
+name: Verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run test
+      - run: npm run build
+
+      - name: Check version bumped
+        if: github.event_name == 'pull_request' && github.base_ref == 'main'
+        run: |
+          git fetch origin main --depth=1
+          if ! git show origin/main:package.json > /tmp/base-package.json 2>/dev/null; then
+            echo "no package.json on main yet, skipping version-bump check"
+            exit 0
+          fi
+          BASE_VERSION=$(node -e "process.stdout.write(JSON.parse(require('fs').readFileSync('/tmp/base-package.json','utf8')).version)")
+          HEAD_VERSION=$(node -p "require('./package.json').version")
+          node -e "
+            const cmp = (a, b) => {
+              const pa = a.split('.').map(Number);
+              const pb = b.split('.').map(Number);
+              for (let i = 0; i < 3; i++) {
+                if (pa[i] !== pb[i]) return pa[i] - pb[i];
+              }
+              return 0;
+            };
+            const base = '$BASE_VERSION';
+            const head = '$HEAD_VERSION';
+            if (cmp(head, base) <= 0) {
+              console.error('package.json version must be bumped above ' + base + ' (currently ' + head + ')');
+              process.exit(1);
+            }
+            console.log('version bump OK: ' + base + ' -> ' + head);
+          "
