@@ -1,8 +1,13 @@
 {
   "name": "git-task-web",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Local web interface for the git-task CLI",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imohsenb/git-task-web.git"
+  },
+  "author": "Mohsen Beiranvand",
   "bin": {
     "git-task-web": "dist/server/cli.js"
   },
