@@ -9,26 +9,32 @@
 
 ## Install
 
-You'll need the `git-task` CLI first:
-
 ```sh
 brew install imohsenb/tap/git-task
-```
-
-Then install Git Task itself:
-
-```sh
-npm install -g git-task-web
 ```
 
 ## Usage
 
 ```sh
-git-task-web
+git task web start
 ```
 
-Open `http://localhost:4600`. Register a repo from Settings (by local path, or clone one by URL), and
-you're on the board.
+If Git Task isn't installed yet, this prompts to install it, then starts the server. Open
+`http://localhost:4600`. Register a repo from Settings (by local path, or clone one by URL), and you're
+on the board.
+
+```sh
+git task web stop
+```
+
+Stops it.
+
+You can also install and run Git Task directly, without going through the `git task` CLI:
+
+```sh
+npm install -g git-task-web
+git-task-web
+```
 
 ## What you can do
 
