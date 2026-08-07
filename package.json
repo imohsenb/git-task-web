@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "description": "Local web interface for the git-task CLI",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/imohsenb/git-task-web.git"
+  },
   "bin": {
     "git-task-web": "dist/server/cli.js"
   },
