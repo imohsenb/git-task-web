@@ -4,8 +4,8 @@
       "name": "Mohsen Beiranvand",
       "email": "imohsen.b@gmail.com"
     },
-    "timestamp": 1786225848,
-    "op": "SetPriority",
-    "priority": "low"
+    "timestamp": 1786228140,
+    "op": "SetStatus",
+    "status": "done"
   }
 ]
