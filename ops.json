@@ -4,10 +4,7 @@
       "name": "Mohsen Beiranvand",
       "email": "imohsen.b@gmail.com"
     },
-    "timestamp": 1786198158,
-    "op": "CreateTask",
-    "title": "Verify markdown rendering upgrades (temp test task)",
-    "kind": "task",
-    "description": "# Verify markdown upgrades\n\nThis description exists purely to smoke-test four things: code-block copy\nbuttons, syntax highlighting, the fullscreen maximize button (needs 20+\nlines), and mermaid pan/zoom.\n\nLine 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\nLine 7\nLine 8\nLine 9\nLine 10\n\n## JavaScript\n\n```js\nfunction greet(name) {\n  const message = `Hello, ${name}!`;\n  console.log(message);\n  return message;\n}\n```\n\n## Python\n\n```python\nimport os\n\ndef load_config(path: str) -> dict:\n    # comment to check hljs-comment styling\n    with open(path) as f:\n        return {\"path\": path, \"size\": os.path.getsize(path)}\n```\n\n## Bash\n\n```bash\n#!/usr/bin/env bash\nset -euo pipefail\necho \"Building project...\"\nnpm run build\n```\n\n## No language\n\n```\nplain fenced block, no language hint\nshould still get a copy button\n```\n\n## Diagram\n\n```mermaid\ngraph TD\n  A[Start] --> B{Decision}\n  B -->|Yes| C[Do thing]\n  B -->|No| D[Do other thing]\n  C --> E[End]\n  D --> E[End]\n```\n\nTrailing paragraph after the diagram to make sure layout still flows\ncorrectly below a pan-zoomed diagram."
+    "timestamp": 1786198989,
+    "op": "DeleteTask"
   }
 ]
