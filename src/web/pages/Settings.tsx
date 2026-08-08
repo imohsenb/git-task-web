@@ -2,6 +2,7 @@ import { Breadcrumb } from "../components/shell/Breadcrumb";
 import { AppearanceSection } from "../components/settings/AppearanceSection";
 import { DefaultViewSection } from "../components/settings/DefaultViewSection";
 import { IdentitySection } from "../components/settings/IdentitySection";
+import { PageSizeSection } from "../components/settings/PageSizeSection";
 import { ProjectsSection } from "../components/settings/ProjectsSection";
 import { ReposSection } from "../components/settings/ReposSection";
 
@@ -17,6 +18,7 @@ export function Settings() {
       <ProjectsSection />
       <IdentitySection />
       <DefaultViewSection />
+      <PageSizeSection />
       <AppearanceSection />
     </div>
   );
