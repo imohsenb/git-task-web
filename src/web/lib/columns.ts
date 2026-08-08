@@ -20,11 +20,22 @@ const DEFAULT_COLUMNS = ["todo", "doing", "blocked", "done"];
  * `git task status X shipped` lands right after the "not started" bucket
  * instead of being buried at the end.
  */
-const BUCKET_ORDER: Semantic[] = ["info", "neutral", "warn", "danger", "success"];
+export const BUCKET_ORDER: Semantic[] = ["info", "neutral", "warn", "danger", "success"];
 
 export interface BoardColumnDef {
   status: string;
   semantic: Semantic;
+}
+
+/** Same ordering `deriveColumns` gives the board's columns (todo first, then bucket
+ * rank, alphabetical within a bucket) — reused wherever a list of tasks/children needs
+ * to read in the same todo → doing → blocked → done order as the board. */
+export function compareByStatus(a: string, b: string): number {
+  if (a === DEFAULT_STATUS && b !== DEFAULT_STATUS) return -1;
+  if (b === DEFAULT_STATUS && a !== DEFAULT_STATUS) return 1;
+  const rankA = BUCKET_ORDER.indexOf(statusSemantic(a));
+  const rankB = BUCKET_ORDER.indexOf(statusSemantic(b));
+  return rankA !== rankB ? rankA - rankB : a.localeCompare(b);
 }
 
 /**
@@ -38,13 +49,5 @@ export interface BoardColumnDef {
  */
 export function deriveColumns(statuses: string[]): BoardColumnDef[] {
   const union = [...new Set([...DEFAULT_COLUMNS, ...statuses])];
-  const rest = union
-    .filter((status) => status !== DEFAULT_STATUS)
-    .sort((a, b) => {
-      const rankA = BUCKET_ORDER.indexOf(statusSemantic(a));
-      const rankB = BUCKET_ORDER.indexOf(statusSemantic(b));
-      return rankA !== rankB ? rankA - rankB : a.localeCompare(b);
-    });
-  const ordered = union.includes(DEFAULT_STATUS) ? [DEFAULT_STATUS, ...rest] : rest;
-  return ordered.map((status) => ({ status, semantic: statusSemantic(status) }));
+  return union.sort(compareByStatus).map((status) => ({ status, semantic: statusSemantic(status) }));
 }

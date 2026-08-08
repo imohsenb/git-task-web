@@ -4,6 +4,7 @@ import { avatarFor } from "../../lib/avatar";
 import { relativeTime } from "../../lib/format";
 import { useAddComment, useEditComment } from "../../lib/mutations";
 import { MarkdownView } from "../ui/MarkdownView";
+import { CollapsibleSection } from "../ui/CollapsibleSection";
 
 export function CommentsSection({ repo, task }: { repo: string; task: TaskJson }) {
   const addComment = useAddComment(repo, task.display_id);
@@ -32,9 +33,7 @@ export function CommentsSection({ repo, task }: { repo: string; task: TaskJson }
   }
 
   return (
-    <div>
-      <h3 className="mb-2 text-micro uppercase text-ink-4">Comments ({task.comments.length})</h3>
-
+    <CollapsibleSection title="Comments" count={task.comments.length}>
       {task.comments.length > 0 && (
         <ul className="space-y-3">
           {task.comments.map((comment) => {
@@ -115,6 +114,6 @@ export function CommentsSection({ repo, task }: { repo: string; task: TaskJson }
           </button>
         </div>
       </form>
-    </div>
+    </CollapsibleSection>
   );
 }

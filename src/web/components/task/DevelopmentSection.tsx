@@ -2,6 +2,7 @@ import { useState } from "react";
 import { RefreshCw, Terminal } from "lucide-react";
 import type { TaskJson } from "../../../shared/contract";
 import { PrRow } from "../prs/PrRow";
+import { CollapsibleSection } from "../ui/CollapsibleSection";
 import { useTaskPrs } from "../../lib/queries";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "../../lib/queryKeys";
@@ -32,10 +33,10 @@ export function DevelopmentSection({ repo, task }: { repo: string; task: TaskJso
   const prs = prsData?.prs ?? [];
 
   return (
-    <div>
-      <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-micro uppercase text-ink-4">Development</h3>
-        {cliAvailable && (
+    <CollapsibleSection
+      title="Development"
+      actions={
+        cliAvailable && (
           <button
             type="button"
             onClick={handleRefresh}
@@ -45,9 +46,9 @@ export function DevelopmentSection({ repo, task }: { repo: string; task: TaskJso
           >
             <RefreshCw size={12} className={isRefreshing || isFetching ? "animate-spin" : ""} />
           </button>
-        )}
-      </div>
-
+        )
+      }
+    >
       {isLoading ? (
         <p className="text-micro text-ink-4">Checking linked pull requests…</p>
       ) : !cliAvailable && prsData?.providerName ? (
@@ -69,6 +70,6 @@ export function DevelopmentSection({ repo, task }: { repo: string; task: TaskJso
           ))}
         </ul>
       )}
-    </div>
+    </CollapsibleSection>
   );
 }

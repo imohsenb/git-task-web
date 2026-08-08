@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Copy, Maximize2, Pencil } from "lucide-react";
 import { toast } from "sonner";
-import type { TaskJson } from "../../../shared/contract";
+import type { ChildJson, TaskJson } from "../../../shared/contract";
 import { Pill } from "../ui/Pill";
 import { Combobox } from "../ui/Combobox";
 import { kindSemantic, prioritySemantic, statusSemantic } from "../../lib/status";
@@ -10,8 +10,9 @@ import { avatarFor } from "../../lib/avatar";
 import { relativeTime } from "../../lib/format";
 import { useSetStatus } from "../../lib/mutations";
 import { useRepoTasks } from "../../lib/queries";
-import { deriveColumns } from "../../lib/columns";
+import { compareByStatus, deriveColumns } from "../../lib/columns";
 import { MarkdownView } from "../ui/MarkdownView";
+import { CollapsibleSection } from "../ui/CollapsibleSection";
 import { Modal } from "../ui/Modal";
 import { TaskEditForm } from "./TaskEditForm";
 import { TaskDangerMenu } from "./TaskDangerMenu";
@@ -20,6 +21,14 @@ import { LinksSection } from "./LinksSection";
 import { DevelopmentSection } from "./DevelopmentSection";
 import { ParentSection } from "./ParentSection";
 import { CommentsSection } from "./CommentsSection";
+
+/** Below this many lines of raw markdown source, the description renders in full —
+ * above it, it's clamped to DESCRIPTION_COLLAPSED_MAX_HEIGHT with a "Show more". A
+ * source-line-count heuristic, not a measured render height (rendered height depends
+ * on markdown block types — headings, lists, mermaid diagrams — that a plain line
+ * count can't see), same tradeoff the old fullscreen-icon threshold already made. */
+const DESCRIPTION_LINE_THRESHOLD = 15;
+const DESCRIPTION_COLLAPSED_MAX_HEIGHT = "24rem";
 
 export function copyTaskLink(repo: string, task: TaskJson) {
   const url = `${window.location.origin}/t/${encodeURIComponent(repo)}/${encodeURIComponent(task.display_id)}`;
@@ -58,11 +67,12 @@ export function TaskDetail({
   const [uncontrolledIsEditing, setUncontrolledIsEditing] = useState(false);
   const isEditing = controlledIsEditing ?? uncontrolledIsEditing;
   const setIsEditing = onEditToggle ?? setUncontrolledIsEditing;
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [isDescriptionFullscreen, setIsDescriptionFullscreen] = useState(false);
+  const [isDescriptionInlineExpanded, setIsDescriptionInlineExpanded] = useState(false);
 
   const assigneeAvatar = task.assignee ? avatarFor(task.assignee, task.assignee_name) : null;
   const reporterAvatar = avatarFor(task.reporter, task.reporter_name);
-  const isLongDescription = (task.description?.split("\n").length ?? 0) > 20;
+  const isLongDescription = (task.description?.split("\n").length ?? 0) > DESCRIPTION_LINE_THRESHOLD;
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
@@ -89,22 +99,40 @@ export function TaskDetail({
                 {isLongDescription && (
                   <button
                     type="button"
-                    onClick={() => setIsDescriptionExpanded(true)}
+                    onClick={() => setIsDescriptionFullscreen(true)}
                     className="absolute right-3 top-3 rounded-control p-1 text-ink-4 transition-colors hover:bg-surface hover:text-ink-1"
-                    aria-label="Expand description"
-                    title="Expand description"
+                    aria-label="Expand description to fullscreen"
+                    title="Expand description to fullscreen"
                   >
                     <Maximize2 size={14} />
                   </button>
                 )}
-                <MarkdownView content={task.description} />
+
+                {isLongDescription && !isDescriptionInlineExpanded ? (
+                  <div className="relative overflow-hidden" style={{ maxHeight: DESCRIPTION_COLLAPSED_MAX_HEIGHT }}>
+                    <MarkdownView content={task.description} />
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-surface-sunk/40 to-transparent" />
+                  </div>
+                ) : (
+                  <MarkdownView content={task.description} />
+                )}
+
+                {isLongDescription && (
+                  <button
+                    type="button"
+                    onClick={() => setIsDescriptionInlineExpanded((v) => !v)}
+                    className="mt-2 text-micro font-medium text-brand-ink hover:underline"
+                  >
+                    {isDescriptionInlineExpanded ? "Show less" : "Show more"}
+                  </button>
+                )}
               </div>
             )}
           </div>
         )}
 
-        {isDescriptionExpanded && task.description && (
-          <Modal title={task.title} onClose={() => setIsDescriptionExpanded(false)} fullScreen>
+        {isDescriptionFullscreen && task.description && (
+          <Modal title={task.title} onClose={() => setIsDescriptionFullscreen(false)} fullScreen>
             <MarkdownView content={task.description} />
           </Modal>
         )}
@@ -252,6 +280,15 @@ export function TaskDetailHeader({
   );
 }
 
+/** Sorted status-first (todo → doing → blocked → done, same bucket order the board's
+ * columns use) so an epic's children read like a mini board instead of whatever order
+ * the CLI's cross-repo scan happened to return them in. Stable within a status —
+ * `children[]` carries no timestamp to break ties on, so equal-status children keep
+ * the scan's original relative order. */
+function sortedChildren(children: ChildJson[]): ChildJson[] {
+  return [...children].sort((a, b) => compareByStatus(a.status, b.status));
+}
+
 /**
  * GTWEB-8384b5c4: "doesn't show the list of epic's children". GTWEB-913a480c:
  * `ls --parent=<id>` (even `--all`) only ever matches a same-repo parent — it can't
@@ -263,11 +300,10 @@ export function TaskDetailHeader({
  * call site (not a self-return-null here) so it never runs for a non-epic task.
  */
 function EpicChildrenSection({ repo, task }: { repo: string; task: TaskJson }) {
-  const children = task.children ?? [];
+  const children = sortedChildren(task.children ?? []);
 
   return (
-    <div>
-      <h3 className="mb-2 text-micro uppercase text-ink-4">Children ({children.length})</h3>
+    <CollapsibleSection title="Children" count={children.length}>
       {children.length === 0 && <p className="text-sm text-ink-4">No child tasks yet.</p>}
       {children.length > 0 && (
         <div className="divide-y divide-line overflow-hidden rounded-card border border-line bg-surface">
@@ -292,7 +328,7 @@ function EpicChildrenSection({ repo, task }: { repo: string; task: TaskJson }) {
           ))}
         </div>
       )}
-    </div>
+    </CollapsibleSection>
   );
 }
 
