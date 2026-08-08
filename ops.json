@@ -1,0 +1,22 @@
+[
+  {
+    "author": {
+      "name": "Mohsen Beiranvand",
+      "email": "imohsen.b@gmail.com"
+    },
+    "timestamp": 1786220689,
+    "op": "CreateTask",
+    "title": "Make project repo list collapsible in the sidebar",
+    "kind": "task",
+    "description": "The sidebar get bloated with list of repositories and in case of having multiple project it would be hard to find them.\nLet's make them collapsible and preserve their last state, if we closed it, it should remained closed"
+  },
+  {
+    "author": {
+      "name": "Mohsen Beiranvand",
+      "email": "imohsen.b@gmail.com"
+    },
+    "timestamp": 1786220689,
+    "op": "SetPriority",
+    "priority": "low"
+  }
+]
