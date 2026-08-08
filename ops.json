@@ -1,0 +1,22 @@
+[
+  {
+    "author": {
+      "name": "Mohsen Beiranvand",
+      "email": "imohsen.b@gmail.com"
+    },
+    "timestamp": 1786230889,
+    "op": "CreateTask",
+    "title": "Add project information",
+    "kind": "task",
+    "description": "Add the bottom of the page add link to the git-task-web repo with a github icon and web ui version and cli version"
+  },
+  {
+    "author": {
+      "name": "Mohsen Beiranvand",
+      "email": "imohsen.b@gmail.com"
+    },
+    "timestamp": 1786230889,
+    "op": "SetPriority",
+    "priority": "low"
+  }
+]
