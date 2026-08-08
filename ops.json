@@ -4,10 +4,8 @@
       "name": "Mohsen Beiranvand",
       "email": "imohsen.b@gmail.com"
     },
-    "timestamp": 1785876030,
-    "op": "CreateTask",
-    "title": "Support cross repo EPIC",
-    "kind": "task",
-    "description": "now the cli support cross repo EPIC that should replicate the link implementation"
+    "timestamp": 1786188655,
+    "op": "SetDescription",
+    "description": "now the cli support cross repo EPIC that should replicate the link implementation\n\n```mermaid\ngraph TD\n  A[Task in repo A] -->|epic link| B[Epic in repo B]\n  B --> C[Task 2 in repo B]\n```"
   }
 ]
