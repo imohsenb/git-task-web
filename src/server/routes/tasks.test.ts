@@ -56,7 +56,7 @@ const fullLsJson: LsJson = {
           parent: null,
           parent_display_id: null,
           parent_repo: null,
-          links: [{ kind: "blocks", target_display_id: "MR-other", target_repo: null }],
+          links: [{ kind: "blocks", target: "other123", target_display_id: "MR-other", target_repo: null }],
           milestone: null,
           comments: [
             { id: 1, author: "a@b.com", author_name: "A", text: "a long comment body", timestamp: 1, edited: false },
