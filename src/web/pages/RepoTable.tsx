@@ -13,7 +13,7 @@ import type { TaskJson } from "../../shared/contract";
 import { useRepoTasks } from "../lib/queries";
 import { useTaskFilters } from "../lib/useTaskFilters";
 import { useDebouncedValue } from "../lib/useDebouncedValue";
-import { filterTasksByQuery } from "../lib/filterTasks";
+import { filterTasksByQuery, sortTasksByUpdatedDesc } from "../lib/filterTasks";
 import { FilterBar } from "../components/list/FilterBar";
 import { WarningStrip } from "../components/ui/WarningStrip";
 import { Pill } from "../components/ui/Pill";
@@ -72,7 +72,12 @@ export function RepoTablePage() {
   });
 
   const tasks = data?.data.repos[0]?.tasks ?? [];
-  const filteredTasks = useMemo(() => filterTasksByQuery(tasks, debouncedQuery), [tasks, debouncedQuery]);
+  // Sorted newest-first as the base order; clicking a header (`sorting` state)
+  // overrides it via getSortedRowModel.
+  const filteredTasks = useMemo(
+    () => sortTasksByUpdatedDesc(filterTasksByQuery(tasks, debouncedQuery)),
+    [tasks, debouncedQuery],
+  );
 
   const table = useReactTable({
     data: filteredTasks,

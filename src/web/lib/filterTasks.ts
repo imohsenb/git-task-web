@@ -15,3 +15,8 @@ export function filterTasksByQuery(tasks: TaskJson[], query: string): TaskJson[]
   if (!query) return tasks;
   return tasks.filter((t) => taskMatchesQuery(t, query));
 }
+
+/** List/table default order: most-recently-updated first. */
+export function sortTasksByUpdatedDesc(tasks: TaskJson[]): TaskJson[] {
+  return [...tasks].sort((a, b) => b.updated - a.updated);
+}

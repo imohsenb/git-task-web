@@ -3,7 +3,7 @@ import { Outlet, useParams } from "react-router-dom";
 import { useRepoTasks } from "../lib/queries";
 import { useTaskFilters } from "../lib/useTaskFilters";
 import { useDebouncedValue } from "../lib/useDebouncedValue";
-import { filterTasksByQuery } from "../lib/filterTasks";
+import { filterTasksByQuery, sortTasksByUpdatedDesc } from "../lib/filterTasks";
 import { usePageSize } from "../lib/pageSize";
 import { TaskListRow } from "../components/list/TaskListRow";
 import { FilterBar } from "../components/list/FilterBar";
@@ -27,7 +27,10 @@ export function RepoListPage() {
   });
 
   const tasks = data?.data.repos[0]?.tasks ?? [];
-  const filteredTasks = useMemo(() => filterTasksByQuery(tasks, debouncedQuery), [tasks, debouncedQuery]);
+  const filteredTasks = useMemo(
+    () => sortTasksByUpdatedDesc(filterTasksByQuery(tasks, debouncedQuery)),
+    [tasks, debouncedQuery],
+  );
 
   // A narrower filter/search/page-size should restart pagination, not leave the
   // reveal count stranded from the previous, larger result set.

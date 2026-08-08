@@ -31,7 +31,6 @@ export function TaskListRow({ repo, task }: { repo: string; task: TaskJson }) {
         >
           {task.title}
         </span>
-        {task.priority && <Pill sem={prioritySemantic(task.priority)}>{task.priority}</Pill>}
         {task.deleted && <Pill sem="danger">deleted</Pill>}
       </span>
       {avatar && (
@@ -55,6 +54,7 @@ export function TaskListRow({ repo, task }: { repo: string; task: TaskJson }) {
           {task.links.length}
         </span>
       )}
+      {task.priority && <Pill sem={prioritySemantic(task.priority)}>{task.priority}</Pill>}
       <Pill sem={statusSemantic(task.status)}>{task.status}</Pill>
       <span className="w-20 shrink-0 text-right text-micro text-ink-4">{relativeTime(task.updated)}</span>
     </Link>

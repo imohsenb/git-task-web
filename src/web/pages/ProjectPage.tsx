@@ -34,10 +34,10 @@ export function ProjectPage() {
 
   const repoCount = registry?.data.repos.filter((r) => r.project === project).length ?? 0;
   const allRows = (data?.data.repos ?? []).flatMap((r) => r.tasks.map((task) => ({ repo: r.name, task })));
-  const rows = useMemo(
-    () => (debouncedQuery ? allRows.filter(({ task }) => taskMatchesQuery(task, debouncedQuery)) : allRows),
-    [allRows, debouncedQuery],
-  );
+  const rows = useMemo(() => {
+    const matched = debouncedQuery ? allRows.filter(({ task }) => taskMatchesQuery(task, debouncedQuery)) : allRows;
+    return [...matched].sort((a, b) => b.task.updated - a.task.updated);
+  }, [allRows, debouncedQuery]);
 
   // A narrower filter/search/page-size should restart pagination, not leave the
   // reveal count stranded from the previous, larger result set.
