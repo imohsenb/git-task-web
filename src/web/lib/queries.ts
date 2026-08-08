@@ -38,11 +38,12 @@ export function useRepoTasks(repo: string, filters: LsFilters = {}) {
   });
 }
 
-export function useAllTasks(filters: LsFilters & { project?: string } = {}) {
+export function useAllTasks(filters: LsFilters & { project?: string } = {}, opts: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: queryKeys.allTasks(filters),
     queryFn: () => apiGet<LsJson>("/tasks", filters),
     staleTime: 10_000,
+    enabled: opts.enabled ?? true,
   });
 }
 
