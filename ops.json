@@ -1,0 +1,22 @@
+[
+  {
+    "author": {
+      "name": "Mohsen Beiranvand",
+      "email": "imohsen.b@gmail.com"
+    },
+    "timestamp": 1786220547,
+    "op": "CreateTask",
+    "title": "Show sync status",
+    "kind": "task",
+    "description": "It's not visible whether the tasks are synced or not"
+  },
+  {
+    "author": {
+      "name": "Mohsen Beiranvand",
+      "email": "imohsen.b@gmail.com"
+    },
+    "timestamp": 1786220547,
+    "op": "SetPriority",
+    "priority": "low"
+  }
+]
