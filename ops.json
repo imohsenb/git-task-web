@@ -1,0 +1,22 @@
+[
+  {
+    "author": {
+      "name": "Mohsen Beiranvand",
+      "email": "imohsen.b@gmail.com"
+    },
+    "timestamp": 1786220356,
+    "op": "CreateTask",
+    "title": "Show the build status for unmerged PRs",
+    "kind": "task",
+    "description": "Would be helpful to show unmerged pull requests and have a deployment tab that we see the last 5 runs, fetch on tab switch and support multiple platforms and show the tab if supported."
+  },
+  {
+    "author": {
+      "name": "Mohsen Beiranvand",
+      "email": "imohsen.b@gmail.com"
+    },
+    "timestamp": 1786220356,
+    "op": "SetPriority",
+    "priority": "low"
+  }
+]
