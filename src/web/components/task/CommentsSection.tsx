@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { Plus } from "lucide-react";
 import type { TaskJson } from "../../../shared/contract";
 import { avatarFor } from "../../lib/avatar";
 import { relativeTime } from "../../lib/format";
@@ -10,6 +11,7 @@ export function CommentsSection({ repo, task }: { repo: string; task: TaskJson }
   const addComment = useAddComment(repo, task.display_id);
   const editComment = useEditComment(repo, task.display_id);
   const [newText, setNewText] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingText, setEditingText] = useState("");
 
@@ -17,7 +19,12 @@ export function CommentsSection({ repo, task }: { repo: string; task: TaskJson }
     e.preventDefault();
     const text = newText.trim();
     if (!text) return;
-    addComment.mutate(text, { onSuccess: () => setNewText("") });
+    addComment.mutate(text, {
+      onSuccess: () => {
+        setNewText("");
+        setIsAdding(false);
+      },
+    });
   }
 
   function startEdit(id: number, currentText: string) {
@@ -32,11 +39,60 @@ export function CommentsSection({ repo, task }: { repo: string; task: TaskJson }
     editComment.mutate({ commentNumber: editingId, text }, { onSuccess: () => setEditingId(null) });
   }
 
+  const sortedComments = [...task.comments].sort((a, b) => b.timestamp - a.timestamp);
+
   return (
-    <CollapsibleSection title="Comments" count={task.comments.length}>
-      {task.comments.length > 0 && (
+    <CollapsibleSection
+      title="Comments"
+      count={task.comments.length}
+      actions={
+        !isAdding && (
+          <button
+            type="button"
+            onClick={() => setIsAdding(true)}
+            title="Add comment"
+            className="text-ink-4 hover:text-ink-1"
+          >
+            <Plus size={14} />
+          </button>
+        )
+      }
+    >
+      {isAdding && (
+        <form onSubmit={submitNew} className="mb-3 space-y-2">
+          <textarea
+            value={newText}
+            onChange={(e) => setNewText(e.target.value)}
+            rows={2}
+            autoFocus
+            placeholder="Add a comment…"
+            className="w-full rounded-control border border-line bg-surface px-3 py-1.5 text-sm text-ink-1 focus:border-brand focus:outline-none"
+          />
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setIsAdding(false);
+                setNewText("");
+              }}
+              className="text-micro text-ink-3 hover:text-ink-1"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={addComment.isPending || !newText.trim()}
+              className="rounded-control bg-brand px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-brand-hover disabled:opacity-50"
+            >
+              {addComment.isPending ? "Posting…" : "Comment"}
+            </button>
+          </div>
+        </form>
+      )}
+
+      {sortedComments.length > 0 && (
         <ul className="space-y-3">
-          {task.comments.map((comment) => {
+          {sortedComments.map((comment) => {
             const commentAvatar = avatarFor(comment.author, comment.author_name);
             const isEditing = editingId === comment.id;
             return (
@@ -95,25 +151,6 @@ export function CommentsSection({ repo, task }: { repo: string; task: TaskJson }
           })}
         </ul>
       )}
-
-      <form onSubmit={submitNew} className="mt-3 space-y-2">
-        <textarea
-          value={newText}
-          onChange={(e) => setNewText(e.target.value)}
-          rows={2}
-          placeholder="Add a comment…"
-          className="w-full rounded-control border border-line bg-surface px-3 py-1.5 text-sm text-ink-1 focus:border-brand focus:outline-none"
-        />
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={addComment.isPending || !newText.trim()}
-            className="rounded-control bg-brand px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-brand-hover disabled:opacity-50"
-          >
-            {addComment.isPending ? "Posting…" : "Comment"}
-          </button>
-        </div>
-      </form>
     </CollapsibleSection>
   );
 }
