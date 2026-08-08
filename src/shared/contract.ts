@@ -148,7 +148,7 @@ export interface LsJson {
 export interface MutationJson {
   task: TaskJson;
   ops: string[];
-  automation: { rule: string; actions: string[]; ops: string[]; error?: string }[];
+  automation: { rule: string; actions: string[]; ops: string[]; error?: string | null }[];
   created?: boolean;
 }
 
