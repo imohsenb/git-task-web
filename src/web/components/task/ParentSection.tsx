@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import type { TaskJson } from "../../../shared/contract";
 import { Combobox } from "../ui/Combobox";
 import { repoLabel } from "./LinksSection";
@@ -38,7 +39,12 @@ export function ParentSection({ repo, task }: { repo: string; task: TaskJson }) 
       <div>
         <dt className="text-micro uppercase text-ink-4">Epic</dt>
         <dd className="mt-1 flex items-center gap-2 font-mono text-sm text-ink-2">
-          {task.parent_display_id}
+          <Link
+            to={`/t/${encodeURIComponent(task.parent_repo ? repoLabel(task.parent_repo, registryRepos) : repo)}/${encodeURIComponent(task.parent_display_id)}`}
+            className="text-brand hover:underline"
+          >
+            {task.parent_display_id}
+          </Link>
           {task.parent_repo && (
             <span className="rounded-pill bg-neutral-tint px-1.5 py-0.5 font-sans text-micro text-neutral-ink">
               {repoLabel(task.parent_repo, registryRepos)}

@@ -33,10 +33,12 @@
     "execa": "^9.5.2",
     "fastify": "^5.2.1",
     "fastify-type-provider-zod": "^4.0.2",
+    "highlight.js": "^11.11.1",
     "marked": "^18.0.9",
     "mermaid": "^11.16.1",
     "open": "^10.1.0",
     "pino": "^9.6.0",
+    "svg-pan-zoom": "^3.6.2",
     "zod": "^3.24.1"
   },
   "devDependencies": {

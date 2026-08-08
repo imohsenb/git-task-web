@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Copy, Pencil } from "lucide-react";
+import { Copy, Maximize2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import type { TaskJson } from "../../../shared/contract";
 import { Pill } from "../ui/Pill";
@@ -12,6 +12,7 @@ import { useSetStatus } from "../../lib/mutations";
 import { useRepoTasks } from "../../lib/queries";
 import { deriveColumns } from "../../lib/columns";
 import { MarkdownView } from "../ui/MarkdownView";
+import { Modal } from "../ui/Modal";
 import { TaskEditForm } from "./TaskEditForm";
 import { TaskDangerMenu } from "./TaskDangerMenu";
 import { LabelsSection } from "./LabelsSection";
@@ -57,9 +58,11 @@ export function TaskDetail({
   const [uncontrolledIsEditing, setUncontrolledIsEditing] = useState(false);
   const isEditing = controlledIsEditing ?? uncontrolledIsEditing;
   const setIsEditing = onEditToggle ?? setUncontrolledIsEditing;
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   const assigneeAvatar = task.assignee ? avatarFor(task.assignee, task.assignee_name) : null;
   const reporterAvatar = avatarFor(task.reporter, task.reporter_name);
+  const isLongDescription = (task.description?.split("\n").length ?? 0) > 20;
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
@@ -82,11 +85,28 @@ export function TaskDetail({
               {task.title}
             </h2>
             {task.description && (
-              <div className="rounded-card border border-line bg-surface-sunk/40 p-4 text-sm">
+              <div className={`relative rounded-card border border-line bg-surface-sunk/40 p-4 text-sm ${isLongDescription ? "pr-10" : ""}`}>
+                {isLongDescription && (
+                  <button
+                    type="button"
+                    onClick={() => setIsDescriptionExpanded(true)}
+                    className="absolute right-3 top-3 rounded-control p-1 text-ink-4 transition-colors hover:bg-surface hover:text-ink-1"
+                    aria-label="Expand description"
+                    title="Expand description"
+                  >
+                    <Maximize2 size={14} />
+                  </button>
+                )}
                 <MarkdownView content={task.description} />
               </div>
             )}
           </div>
+        )}
+
+        {isDescriptionExpanded && task.description && (
+          <Modal title={task.title} onClose={() => setIsDescriptionExpanded(false)} fullScreen>
+            <MarkdownView content={task.description} />
+          </Modal>
         )}
 
         {task.kind === "epic" && <EpicChildrenSection repo={repo} task={task} />}
