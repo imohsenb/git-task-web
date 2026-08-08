@@ -310,3 +310,16 @@ export interface TaskPrsResponseJson {
   error?: string | null;
 }
 
+export interface RepoPrsResponseJson {
+  platform: PrPlatform | null;
+  providerName: string | null;
+  cliAvailable: boolean;
+  cliName: string | null;
+  prs: PullRequestJson[];
+  error?: string | null;
+}
+
+export interface ProjectPrsResponseJson {
+  repos: (RepoPrsResponseJson & { repo: string })[];
+}
+

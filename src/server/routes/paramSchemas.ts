@@ -12,6 +12,10 @@ export const repoTaskParamSchema = repoParamSchema.extend({
   id: z.string().min(1).max(NAME_MAX_LEN),
 });
 
+export const projectParamSchema = z.object({
+  project: z.string().min(1).max(NAME_MAX_LEN),
+});
+
 /** Query strings arrive as strings; this normalises the handful of truthy/falsy
  * spellings a browser or curl might send ("", "1", "true") into a real boolean
  * without the z.coerce.boolean() footgun (which treats "false" as truthy — any

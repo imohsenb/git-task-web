@@ -7,4 +7,6 @@ export const queryKeys = {
   task: (repo: string, displayId: string) => ["task", repo, displayId] as const,
   fields: (repo: string) => ["fields", repo] as const,
   taskPrs: (repo: string, displayId: string) => ["taskPrs", repo, displayId] as const,
+  repoPrs: (repo: string) => ["repoPrs", repo] as const,
+  projectPrs: (project: string) => ["projectPrs", project] as const,
 };

@@ -12,6 +12,7 @@ const TABS = [
   { view: "table", label: "Table" },
   { view: "milestones", label: "Milestones" },
   { view: "members", label: "Members" },
+  { view: "development", label: "Development" },
   { view: "sync", label: "Sync" },
 ] as const;
 

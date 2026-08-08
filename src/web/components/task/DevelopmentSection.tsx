@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { GitPullRequest, ExternalLink, RefreshCw, Terminal } from "lucide-react";
+import { RefreshCw, Terminal } from "lucide-react";
 import type { TaskJson } from "../../../shared/contract";
-import { Pill } from "../ui/Pill";
+import { PrRow } from "../prs/PrRow";
 import { useTaskPrs } from "../../lib/queries";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "../../lib/queryKeys";
@@ -65,38 +65,7 @@ export function DevelopmentSection({ repo, task }: { repo: string; task: TaskJso
       ) : (
         <ul className="space-y-1.5 text-sm">
           {prs.map((pr) => (
-            <li
-              key={pr.id}
-              className="flex items-center justify-between gap-2 rounded-control border border-line bg-surface px-2.5 py-1.5 transition-colors hover:bg-surface-sunk"
-            >
-              <div className="flex min-w-0 items-center gap-2">
-                <GitPullRequest size={14} className="shrink-0 text-ink-3" />
-                <span className="shrink-0 font-mono text-micro text-ink-3">{pr.id}</span>
-                <Pill
-                  sem={
-                    pr.state === "open"
-                      ? "info"
-                      : pr.state === "merged"
-                      ? "success"
-                      : "neutral"
-                  }
-                >
-                  {pr.state}
-                </Pill>
-                <span className="truncate text-xs font-medium text-ink-1" title={pr.title}>
-                  {pr.title}
-                </span>
-              </div>
-              <a
-                href={pr.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="shrink-0 text-ink-4 hover:text-ink-1"
-                title="Open pull request in browser"
-              >
-                <ExternalLink size={13} />
-              </a>
-            </li>
+            <PrRow key={pr.id} pr={pr} />
           ))}
         </ul>
       )}

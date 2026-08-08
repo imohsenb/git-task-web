@@ -69,6 +69,50 @@ export class GitLabProvider implements PrProvider {
     }
   }
 
+  async fetchOpenPrs(repoPath: string, remote: ParsedRemote): Promise<PullRequestJson[]> {
+    try {
+      const repoArg = `${remote.owner}/${remote.repo}`;
+      // Try glab mr list -F json first
+      let res = await execa(
+        "glab",
+        ["mr", "list", "--repo", repoArg, "--state", "opened", "--per-page", "100", "-F", "json"],
+        {
+          cwd: repoPath,
+          timeout: 10000,
+          reject: false,
+        },
+      );
+
+      if (res.exitCode !== 0 || !res.stdout) {
+        // Fallback to glab mr list --output json
+        res = await execa(
+          "glab",
+          ["mr", "list", "--repo", repoArg, "--state", "opened", "--per-page", "100", "--output", "json"],
+          {
+            cwd: repoPath,
+            timeout: 10000,
+            reject: false,
+          },
+        );
+      }
+
+      if (res.exitCode !== 0 || !res.stdout) {
+        return [];
+      }
+
+      const items: GlabMrItem[] = JSON.parse(res.stdout);
+      return items.map((item) => ({
+        id: `!${item.iid ?? item.id}`,
+        title: item.title,
+        url: item.web_url,
+        state: this.normalizeState(item.state),
+        provider: "gitlab",
+      }));
+    } catch {
+      return [];
+    }
+  }
+
   private normalizeState(rawState: string): PrState {
     const s = rawState.toLowerCase();
     if (s === "merged") return "merged";
