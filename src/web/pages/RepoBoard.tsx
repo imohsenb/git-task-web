@@ -17,7 +17,7 @@ import { useRepoTasks } from "../lib/queries";
 import { useSetStatus } from "../lib/mutations";
 import { useTaskFilters } from "../lib/useTaskFilters";
 import { useDebouncedValue } from "../lib/useDebouncedValue";
-import { filterTasksByQuery } from "../lib/filterTasks";
+import { filterTasksByQuery, sortTasksByUpdatedDesc } from "../lib/filterTasks";
 import { deriveColumns } from "../lib/columns";
 import { childCountByParent } from "../lib/childCounts";
 import { FilterBar } from "../components/list/FilterBar";
@@ -62,7 +62,7 @@ export function RepoBoardPage() {
   const filteredTasks = useMemo(() => filterTasksByQuery(tasks, debouncedQuery), [tasks, debouncedQuery]);
   const columns = useMemo(() => deriveColumns(data?.data.statuses ?? []), [data?.data.statuses]);
   const childCounts = useMemo(() => childCountByParent(filteredTasks), [filteredTasks]);
-  const byStatus = useMemo(() => groupByStatus(filteredTasks), [filteredTasks]);
+  const byStatus = useMemo(() => groupByStatus(sortTasksByUpdatedDesc(filteredTasks)), [filteredTasks]);
   const activeTask = activeId ? filteredTasks.find((t) => t.id === activeId) : undefined;
 
   // 8px activation distance so a plain click still opens the task dialog instead of

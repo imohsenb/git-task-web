@@ -7,4 +7,5 @@ export interface PrProvider {
   cliName: "gh" | "glab";
   checkCliAvailable(): Promise<boolean>;
   fetchPrs(repoPath: string, remote: ParsedRemote, taskId: string): Promise<PullRequestJson[]>;
+  fetchOpenPrs(repoPath: string, remote: ParsedRemote): Promise<PullRequestJson[]>;
 }

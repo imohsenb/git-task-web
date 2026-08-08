@@ -158,7 +158,7 @@ export const mutationJsonSchema = z.object({
       rule: z.string(),
       actions: z.array(z.string()),
       ops: z.array(z.string()),
-      error: z.string().optional(),
+      error: z.string().nullable().optional(),
     }),
   ),
   created: z.boolean().optional(),

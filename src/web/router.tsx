@@ -5,6 +5,7 @@ import { Home } from "./pages/Home";
 import { ProjectPage } from "./pages/ProjectPage";
 import { RepoWorkspace } from "./pages/RepoWorkspace";
 import { RepoBoardPage } from "./pages/RepoBoard";
+import { RepoDevelopmentPage } from "./pages/RepoDevelopment";
 import { RepoListPage } from "./pages/RepoList";
 import { RepoMembersPage } from "./pages/RepoMembers";
 import { RepoMilestonesPage } from "./pages/RepoMilestones";
@@ -52,6 +53,7 @@ export const router = createBrowserRouter([
             children: [{ path: "t/:displayId", element: <TaskDialog /> }],
           },
           { path: "members", element: <RepoMembersPage /> },
+          { path: "development", element: <RepoDevelopmentPage /> },
           { path: "sync", element: <RepoSyncPage /> },
         ],
       },

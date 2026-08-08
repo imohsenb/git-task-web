@@ -8,6 +8,21 @@ import { dataDirContext, repoContext } from "../gitTask/context.js";
 import { taskKindSchema } from "../../shared/contract.zod.js";
 import { booleanQueryParam, NAME_MAX_LEN, repoParamSchema, repoTaskParamSchema } from "./paramSchemas.js";
 import type { ResolvedEnv } from "../env.js";
+import type { LiteLsJson, LsJson } from "../../shared/contract.js";
+
+/** Strips each task down to {id, display_id, title} before it leaves the
+ * process — GTASK-7b322d51 tracks getting the CLI itself to skip building the
+ * full payload; this is the interim fix so a caller that only needs id+title
+ * (global search) isn't shipped every task's full description/comments/links
+ * over HTTP just to throw them away client-side. */
+function toLite(data: LsJson): LiteLsJson {
+  return {
+    repos: data.repos.map((r) => ({
+      name: r.name,
+      tasks: r.tasks.map((t) => ({ id: t.id, display_id: t.display_id, title: t.title })),
+    })),
+  };
+}
 
 const lsQuerySchema = z.object({
   status: z.string().min(1).max(NAME_MAX_LEN).optional(),
@@ -24,6 +39,7 @@ const lsQuerySchema = z.object({
 
 const tasksAllQuerySchema = lsQuerySchema.extend({
   project: z.string().min(1).max(NAME_MAX_LEN).optional(),
+  light: booleanQueryParam,
 });
 
 function toFilters(query: z.infer<typeof lsQuerySchema>): LsFilters {
@@ -55,11 +71,11 @@ export function registerTasksRoutes(rawApp: FastifyInstance, env: ResolvedEnv) {
   );
 
   app.get("/api/tasks", { schema: { querystring: tasksAllQuerySchema } }, async (request) => {
-    const { project, ...rest } = request.query;
+    const { project, light, ...rest } = request.query;
     const filters = toFilters(rest);
     const ctx = dataDirContext(env);
     const { data, warnings } = project ? await lsProject(ctx, project, filters) : await lsAll(ctx, filters);
-    return { data, warnings };
+    return { data: light ? toLite(data) : data, warnings };
   });
 
   app.get(

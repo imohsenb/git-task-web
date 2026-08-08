@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import type { TaskJson } from "../../../shared/contract";
 import type { Semantic } from "../../lib/status";
+import { usePageSize } from "../../lib/pageSize";
 import { Pill } from "../ui/Pill";
 import { TaskCard } from "./TaskCard";
 
@@ -18,6 +20,11 @@ export function BoardColumn({
   childCounts: Map<string, number>;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
+  const [pageSize] = usePageSize();
+  const [expanded, setExpanded] = useState(false);
+
+  const visibleTasks = expanded ? tasks : tasks.slice(0, pageSize);
+  const hiddenCount = tasks.length - visibleTasks.length;
 
   return (
     <div
@@ -34,7 +41,7 @@ export function BoardColumn({
         <span className="text-micro text-ink-4">{tasks.length}</span>
       </div>
       <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-0.5">
-        {tasks.map((task) => (
+        {visibleTasks.map((task) => (
           <TaskCard
             key={task.id}
             repo={repo}
@@ -51,6 +58,15 @@ export function BoardColumn({
           >
             No tasks
           </div>
+        )}
+        {hiddenCount > 0 && (
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            className="w-full rounded-control border border-dashed border-line-strong py-1.5 text-micro font-medium text-ink-3 transition-colors hover:border-brand hover:text-brand-ink"
+          >
+            Show {hiddenCount} more
+          </button>
         )}
       </div>
     </div>

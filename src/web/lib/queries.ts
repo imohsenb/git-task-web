@@ -1,7 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiGet, type LsFilters } from "./api";
 import { queryKeys } from "./queryKeys";
-import type { LsJson, MetaJson, RegistryJson, RepoConfigJson, TaskJson, TaskPrsResponseJson } from "../../shared/contract";
+import type {
+  LiteLsJson,
+  LsJson,
+  MetaJson,
+  ProjectPrsResponseJson,
+  RegistryJson,
+  RepoConfigJson,
+  RepoPrsResponseJson,
+  TaskJson,
+  TaskPrsResponseJson,
+} from "../../shared/contract";
 
 export function useMeta() {
   return useQuery({
@@ -29,11 +39,24 @@ export function useRepoTasks(repo: string, filters: LsFilters = {}) {
   });
 }
 
-export function useAllTasks(filters: LsFilters & { project?: string } = {}) {
+export function useAllTasks(filters: LsFilters & { project?: string } = {}, opts: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: queryKeys.allTasks(filters),
     queryFn: () => apiGet<LsJson>("/tasks", filters),
     staleTime: 10_000,
+    enabled: opts.enabled ?? true,
+  });
+}
+
+/** Trimmed id+display_id+title projection across every registered repo — for
+ * global search, which never needs a task's description/comments/links, so
+ * there's no reason to ship or parse them. See GlobalSearch.tsx. */
+export function useAllTasksLite(opts: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: queryKeys.allTasksLite,
+    queryFn: () => apiGet<LiteLsJson>("/tasks", { light: true }),
+    staleTime: 10_000,
+    enabled: opts.enabled ?? true,
   });
 }
 
@@ -66,6 +89,24 @@ export function useTaskPrs(repo: string, displayId: string) {
       ),
     staleTime: 60_000,
     enabled: repo.length > 0 && displayId.length > 0,
+  });
+}
+
+export function useRepoPrs(repo: string) {
+  return useQuery({
+    queryKey: queryKeys.repoPrs(repo),
+    queryFn: () => apiGet<RepoPrsResponseJson>(`/repos/${encodeURIComponent(repo)}/prs`),
+    staleTime: 60_000,
+    enabled: repo.length > 0,
+  });
+}
+
+export function useProjectPrs(project: string) {
+  return useQuery({
+    queryKey: queryKeys.projectPrs(project),
+    queryFn: () => apiGet<ProjectPrsResponseJson>(`/projects/${encodeURIComponent(project)}/prs`),
+    staleTime: 60_000,
+    enabled: project.length > 0,
   });
 }
 

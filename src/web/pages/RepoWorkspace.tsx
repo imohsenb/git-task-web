@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { NavLink, Outlet, useParams } from "react-router-dom";
+import { ExternalLink } from "lucide-react";
 import { Breadcrumb } from "../components/shell/Breadcrumb";
 import { MetaBlock } from "../components/meta/MetaBlock";
 import { NewTaskDialog } from "../components/task/NewTaskDialog";
 import { useRegistry } from "../lib/queries";
 import { useNewTaskShortcut } from "../lib/keyboard";
+import { repoWebUrl } from "../lib/repoUrl";
 
 const TABS = [
   { view: "board", label: "Board" },
@@ -12,6 +14,7 @@ const TABS = [
   { view: "table", label: "Table" },
   { view: "milestones", label: "Milestones" },
   { view: "members", label: "Members" },
+  { view: "development", label: "Development" },
   { view: "sync", label: "Sync" },
 ] as const;
 
@@ -19,6 +22,7 @@ export function RepoWorkspace() {
   const { repo = "" } = useParams();
   const { data } = useRegistry();
   const repoEntry = data?.data.repos.find((r) => r.name === repo);
+  const webUrl = repoWebUrl(repoEntry?.remotes);
   const [isNewTaskOpen, setIsNewTaskOpen] = useState(false);
   useNewTaskShortcut(() => setIsNewTaskOpen(true));
 
@@ -32,7 +36,21 @@ export function RepoWorkspace() {
             { label: repo },
           ]}
         />
-        <h1 className="mt-3 text-display font-display tracking-display text-ink-1">{repo}</h1>
+        <div className="mt-3 flex items-center gap-2">
+          <h1 className="text-display font-display tracking-display text-ink-1">{repo}</h1>
+          {webUrl && (
+            <a
+              href={webUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Open repository"
+              aria-label="Open repository"
+              className="text-ink-4 transition-colors hover:text-ink-1"
+            >
+              <ExternalLink size={18} />
+            </a>
+          )}
+        </div>
         <MetaBlock
           repoKey={repoEntry?.key ?? null}
           branch={repoEntry?.branch ?? null}

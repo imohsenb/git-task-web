@@ -1,6 +1,6 @@
 {
   "name": "git-task-web",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Local web interface for the git-task CLI",
   "type": "module",
   "repository": {

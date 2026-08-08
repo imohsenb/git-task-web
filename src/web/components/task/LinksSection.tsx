@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 import type { LinkKind, TaskJson } from "../../../shared/contract";
 import { Pill } from "../ui/Pill";
 import { Combobox } from "../ui/Combobox";
+import { CollapsibleSection } from "../ui/CollapsibleSection";
 import { useAddLink, useRemoveLink } from "../../lib/mutations";
 import { useRegistry, useRepoTasks } from "../../lib/queries";
 
@@ -52,10 +53,10 @@ export function LinksSection({ repo, task }: { repo: string; task: TaskJson }) {
   }
 
   return (
-    <div>
-      <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-micro uppercase text-ink-4">Links</h3>
-        {!isAdding && (
+    <CollapsibleSection
+      title="Links"
+      actions={
+        !isAdding && (
           <button
             type="button"
             onClick={() => setIsAdding(true)}
@@ -64,9 +65,9 @@ export function LinksSection({ repo, task }: { repo: string; task: TaskJson }) {
           >
             <Plus size={14} />
           </button>
-        )}
-      </div>
-
+        )
+      }
+    >
       {task.links.length > 0 && (
         <ul className="mb-2 space-y-1 text-sm">
           {task.links.map((link) => (
@@ -145,6 +146,6 @@ export function LinksSection({ repo, task }: { repo: string; task: TaskJson }) {
       ) : task.links.length === 0 ? (
         <p className="text-micro text-ink-4">No linked tasks found.</p>
       ) : null}
-    </div>
+    </CollapsibleSection>
   );
 }
