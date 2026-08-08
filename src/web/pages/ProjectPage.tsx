@@ -1,19 +1,63 @@
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { GitPullRequest } from "lucide-react";
 import { useAllTasks, useProjectPrs, useRegistry } from "../lib/queries";
+import { useTaskFilters } from "../lib/useTaskFilters";
+import { useDebouncedValue } from "../lib/useDebouncedValue";
+import { taskMatchesQuery } from "../lib/filterTasks";
+import { usePageSize } from "../lib/pageSize";
 import { TaskListRow } from "../components/list/TaskListRow";
+import { FilterBar } from "../components/list/FilterBar";
 import { WarningStrip } from "../components/ui/WarningStrip";
 import { Breadcrumb } from "../components/shell/Breadcrumb";
 import { PrRow } from "../components/prs/PrRow";
 
 export function ProjectPage() {
   const { project = "" } = useParams();
-  const { data, isLoading, error } = useAllTasks({ project });
+  const [filters, setFilters] = useTaskFilters();
+  const debouncedQuery = useDebouncedValue(filters.q ?? "", 150);
+  const [pageSize] = usePageSize();
+  const [visibleCount, setVisibleCount] = useState(pageSize);
+
+  const { data, isLoading, error } = useAllTasks({
+    project,
+    status: filters.status,
+    assignee: filters.assignee,
+    label: filters.label,
+    kind: filters.kind,
+    parent: filters.parent,
+    mine: filters.mine,
+    deleted: filters.deleted,
+  });
   const { data: registry } = useRegistry();
   const { data: prsData } = useProjectPrs(project);
 
   const repoCount = registry?.data.repos.filter((r) => r.project === project).length ?? 0;
-  const rows = (data?.data.repos ?? []).flatMap((r) => r.tasks.map((task) => ({ repo: r.name, task })));
+  const allRows = (data?.data.repos ?? []).flatMap((r) => r.tasks.map((task) => ({ repo: r.name, task })));
+  const rows = useMemo(
+    () => (debouncedQuery ? allRows.filter(({ task }) => taskMatchesQuery(task, debouncedQuery)) : allRows),
+    [allRows, debouncedQuery],
+  );
+
+  // A narrower filter/search/page-size should restart pagination, not leave the
+  // reveal count stranded from the previous, larger result set.
+  useEffect(() => {
+    setVisibleCount(pageSize);
+  }, [
+    project,
+    debouncedQuery,
+    filters.status,
+    filters.assignee,
+    filters.label,
+    filters.kind,
+    filters.parent,
+    filters.mine,
+    filters.deleted,
+    pageSize,
+  ]);
+
+  const visibleRows = rows.slice(0, visibleCount);
+  const hiddenCount = rows.length - visibleRows.length;
 
   const prRepos = (prsData?.data.repos ?? []).filter((r) => r.providerName);
   const totalOpenPrs = prRepos.reduce((sum, r) => sum + r.prs.length, 0);
@@ -48,17 +92,32 @@ export function ProjectPage() {
         </details>
       )}
 
-      {isLoading && <p className="mt-4 text-sm text-ink-4">Loading…</p>}
-      {error && <p className="mt-4 text-sm text-danger-ink">{error.message}</p>}
+      <div className="mt-4">
+        <FilterBar filters={filters} setFilters={setFilters} statuses={data?.data.statuses ?? []} />
+      </div>
+
+      {isLoading && <p className="text-sm text-ink-4">Loading…</p>}
+      {error && <p className="text-sm text-danger-ink">{error.message}</p>}
       {!isLoading && !error && rows.length === 0 && (
-        <p className="mt-4 text-sm text-ink-4">No tasks in this project.</p>
+        <p className="text-sm text-ink-4">No tasks match the current filters.</p>
       )}
 
       {rows.length > 0 && (
-        <div className="mt-4 divide-y divide-line overflow-hidden rounded-card border border-line bg-surface">
-          {rows.map(({ repo, task }) => (
-            <TaskListRow key={`${repo}-${task.id}`} repo={repo} task={task} />
-          ))}
+        <div className="overflow-hidden rounded-card border border-line bg-surface">
+          <div className="divide-y divide-line">
+            {visibleRows.map(({ repo, task }) => (
+              <TaskListRow key={`${repo}-${task.id}`} repo={repo} task={task} />
+            ))}
+          </div>
+          {hiddenCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setVisibleCount((c) => c + pageSize)}
+              className="w-full border-t border-line py-2 text-sm font-medium text-ink-3 transition-colors hover:bg-surface-sunk hover:text-ink-1"
+            >
+              Load {Math.min(hiddenCount, pageSize)} more ({hiddenCount} remaining)
+            </button>
+          )}
         </div>
       )}
     </div>

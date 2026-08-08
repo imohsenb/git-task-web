@@ -20,19 +20,20 @@ export function TaskListRow({ repo, task }: { repo: string; task: TaskJson }) {
         task.deleted ? "opacity-55" : "",
       ].join(" ")}
     >
-      {task.priority && <Pill sem={prioritySemantic(task.priority)}>{task.priority}</Pill>}
       <Pill sem={kindSemantic(task.kind)}>{task.kind}</Pill>
       <span className="w-24 shrink-0 truncate font-mono text-micro text-ink-4">{task.display_id}</span>
-      <span
-        className={[
-          "min-w-0 flex-1 truncate text-sm font-medium text-ink-1",
-          task.deleted ? "line-through" : "",
-        ].join(" ")}
-      >
-        {task.title}
+      <span className="flex min-w-0 flex-1 items-center gap-1.5">
+        <span
+          className={[
+            "min-w-0 flex-1 truncate text-sm font-medium text-ink-1",
+            task.deleted ? "line-through" : "",
+          ].join(" ")}
+        >
+          {task.title}
+        </span>
+        {task.priority && <Pill sem={prioritySemantic(task.priority)}>{task.priority}</Pill>}
+        {task.deleted && <Pill sem="danger">deleted</Pill>}
       </span>
-      {task.deleted && <Pill sem="danger">deleted</Pill>}
-      <Pill sem={statusSemantic(task.status)}>{task.status}</Pill>
       {avatar && (
         <span
           className="flex size-5 shrink-0 items-center justify-center rounded-pill text-[10px] font-semibold"
@@ -54,6 +55,7 @@ export function TaskListRow({ repo, task }: { repo: string; task: TaskJson }) {
           {task.links.length}
         </span>
       )}
+      <Pill sem={statusSemantic(task.status)}>{task.status}</Pill>
       <span className="w-20 shrink-0 text-right text-micro text-ink-4">{relativeTime(task.updated)}</span>
     </Link>
   );

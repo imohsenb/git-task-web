@@ -8,7 +8,7 @@ import {
   useReactTable,
   type SortingState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, Link2, MessageSquare } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 import type { TaskJson } from "../../shared/contract";
 import { useRepoTasks } from "../lib/queries";
 import { useTaskFilters } from "../lib/useTaskFilters";
@@ -18,19 +18,10 @@ import { FilterBar } from "../components/list/FilterBar";
 import { WarningStrip } from "../components/ui/WarningStrip";
 import { Pill } from "../components/ui/Pill";
 import { kindSemantic, prioritySemantic, statusSemantic } from "../lib/status";
-import { avatarFor } from "../lib/avatar";
-import { relativeTime } from "../lib/format";
 
 const columnHelper = createColumnHelper<TaskJson>();
 
 const columns = [
-  columnHelper.accessor("priority", {
-    header: "Priority",
-    cell: (info) => {
-      const priority = info.getValue();
-      return priority ? <Pill sem={prioritySemantic(priority)}>{priority}</Pill> : null;
-    },
-  }),
   columnHelper.accessor("kind", {
     header: "Kind",
     cell: (info) => <Pill sem={kindSemantic(info.getValue())}>{info.getValue()}</Pill>,
@@ -50,56 +41,16 @@ const columns = [
       );
     },
   }),
+  columnHelper.accessor("priority", {
+    header: "Priority",
+    cell: (info) => {
+      const priority = info.getValue();
+      return priority ? <Pill sem={prioritySemantic(priority)}>{priority}</Pill> : null;
+    },
+  }),
   columnHelper.accessor("status", {
     header: "Status",
     cell: (info) => <Pill sem={statusSemantic(info.getValue())}>{info.getValue()}</Pill>,
-  }),
-  columnHelper.accessor("assignee_name", {
-    id: "assignee",
-    header: "Assignee",
-    cell: (info) => {
-      const task = info.row.original;
-      if (!task.assignee) return <span className="text-micro text-ink-4">—</span>;
-      const avatar = avatarFor(task.assignee, task.assignee_name);
-      return (
-        <span className="flex items-center gap-1.5">
-          <span
-            className="flex size-5 shrink-0 items-center justify-center rounded-pill text-[10px] font-semibold"
-            style={avatar.style}
-          >
-            {avatar.initials}
-          </span>
-          <span className="truncate text-sm text-ink-2">{task.assignee_name ?? task.assignee}</span>
-        </span>
-      );
-    },
-  }),
-  columnHelper.display({
-    id: "activity",
-    header: "Activity",
-    cell: (info) => {
-      const task = info.row.original;
-      return (
-        <span className="flex items-center gap-3 text-micro text-ink-4">
-          {task.comments.length > 0 && (
-            <span className="flex items-center gap-0.5">
-              <MessageSquare size={12} />
-              {task.comments.length}
-            </span>
-          )}
-          {task.links.length > 0 && (
-            <span className="flex items-center gap-0.5">
-              <Link2 size={12} />
-              {task.links.length}
-            </span>
-          )}
-        </span>
-      );
-    },
-  }),
-  columnHelper.accessor("updated", {
-    header: "Updated",
-    cell: (info) => <span className="text-micro text-ink-4">{relativeTime(info.getValue())}</span>,
   }),
 ];
 
@@ -108,7 +59,7 @@ export function RepoTablePage() {
   const navigate = useNavigate();
   const [filters, setFilters] = useTaskFilters();
   const debouncedQuery = useDebouncedValue(filters.q ?? "", 150);
-  const [sorting, setSorting] = useState<SortingState>([{ id: "updated", desc: true }]);
+  const [sorting, setSorting] = useState<SortingState>([]);
 
   const { data, isLoading, error } = useRepoTasks(repo, {
     status: filters.status,
