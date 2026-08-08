@@ -4,39 +4,7 @@
       "name": "Mohsen Beiranvand",
       "email": "imohsen.b@gmail.com"
     },
-    "timestamp": 1786199281,
-    "op": "CreateTask",
-    "title": "Temp child task for UI test",
-    "kind": "task",
-    "description": "temp"
-  },
-  {
-    "author": {
-      "name": "Mohsen Beiranvand",
-      "email": "imohsen.b@gmail.com"
-    },
-    "timestamp": 1786199281,
-    "op": "AddLabel",
-    "label": "search"
-  },
-  {
-    "author": {
-      "name": "Mohsen Beiranvand",
-      "email": "imohsen.b@gmail.com"
-    },
-    "timestamp": 1786199281,
-    "op": "AddLabel",
-    "label": "ui-test"
-  },
-  {
-    "author": {
-      "name": "Mohsen Beiranvand",
-      "email": "imohsen.b@gmail.com"
-    },
-    "timestamp": 1786199281,
-    "op": "SetParent",
-    "parent": "7754ba1a0d8c6df265149f705e7d17846ded9b18",
-    "parent_repo": null,
-    "parent_label": null
+    "timestamp": 1786199325,
+    "op": "DeleteTask"
   }
 ]
