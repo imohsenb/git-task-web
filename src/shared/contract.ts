@@ -145,6 +145,22 @@ export interface LsJson {
   total: number;
 }
 
+/** git-task-web's own trimmed projection of LsJson — the server strips
+ * description/comments/links/etc. before this leaves the process, so a
+ * caller that only needs to match/display id+title (global search) doesn't
+ * pay to ship or parse every task's full body over HTTP. Not part of the CLI
+ * contract; see GTASK-7b322d51 for the corresponding CLI-side ask (skip
+ * building the full payload in the first place, not just trimming it after). */
+export interface LiteTaskJson {
+  id: string;
+  display_id: string;
+  title: string;
+}
+
+export interface LiteLsJson {
+  repos: { name: string; tasks: LiteTaskJson[] }[];
+}
+
 export interface MutationJson {
   task: TaskJson;
   ops: string[];

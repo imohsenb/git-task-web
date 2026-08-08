@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiGet, type LsFilters } from "./api";
 import { queryKeys } from "./queryKeys";
 import type {
+  LiteLsJson,
   LsJson,
   MetaJson,
   ProjectPrsResponseJson,
@@ -42,6 +43,18 @@ export function useAllTasks(filters: LsFilters & { project?: string } = {}, opts
   return useQuery({
     queryKey: queryKeys.allTasks(filters),
     queryFn: () => apiGet<LsJson>("/tasks", filters),
+    staleTime: 10_000,
+    enabled: opts.enabled ?? true,
+  });
+}
+
+/** Trimmed id+display_id+title projection across every registered repo — for
+ * global search, which never needs a task's description/comments/links, so
+ * there's no reason to ship or parse them. See GlobalSearch.tsx. */
+export function useAllTasksLite(opts: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: queryKeys.allTasksLite,
+    queryFn: () => apiGet<LiteLsJson>("/tasks", { light: true }),
     staleTime: 10_000,
     enabled: opts.enabled ?? true,
   });

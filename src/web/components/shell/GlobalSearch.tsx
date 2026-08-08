@@ -1,19 +1,24 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, FolderOpen } from "lucide-react";
-import { useAllTasks, useRegistry } from "../../lib/queries";
+import { useAllTasksLite, useRegistry } from "../../lib/queries";
 import { useDebouncedValue } from "../../lib/useDebouncedValue";
 
 const MAX_PROJECT_RESULTS = 5;
 const MAX_TASK_RESULTS = 8;
 
 /**
- * Quick-jump by project name or task ID across every registered repo — not a
- * full-text search (title/description search already lives per-repo/project in
- * FilterBar). Efficient by construction: projects come from the already-cached
- * registry, and tasks come from `ls --all` — one CLI spawn covering every repo,
- * not one per repo — and that query stays disabled until the box is actually
- * used, so it costs nothing on pages that never touch search.
+ * Quick-jump by project name, task ID, or task title across every registered
+ * repo — not full-text search over description/comments (that's what the
+ * per-repo/project FilterBar search is for). Three things keep this cheap as
+ * repos/tasks grow: (1) `ls --all` is one CLI spawn covering every repo, not
+ * one per repo; (2) the query stays disabled until the box is actually
+ * focused, so it costs nothing on pages that never touch search; (3) it hits
+ * `/api/tasks?light=true`, which strips each task down to id/display_id/title
+ * server-side (see routes/tasks.ts toLite) instead of shipping every task's
+ * full description/comments/links over HTTP just to throw them away here.
+ * GTASK-7b322d51 tracks the matching CLI-side ask — skip building the full
+ * payload in the first place, not just trim it after.
  */
 export function GlobalSearch() {
   const [query, setQuery] = useState("");
@@ -24,7 +29,7 @@ export function GlobalSearch() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { data: registry } = useRegistry();
-  const { data: allTasks, isFetching } = useAllTasks({}, { enabled: hasInteracted });
+  const { data: allTasks, isFetching } = useAllTasksLite({ enabled: hasInteracted });
 
   useEffect(() => {
     function handlePointerDown(e: MouseEvent) {
@@ -43,7 +48,7 @@ export function GlobalSearch() {
   const matchedTasks = q
     ? (allTasks?.data.repos ?? [])
         .flatMap((r) => r.tasks.map((task) => ({ repo: r.name, task })))
-        .filter(({ task }) => task.display_id.toLowerCase().includes(q))
+        .filter(({ task }) => task.display_id.toLowerCase().includes(q) || task.title.toLowerCase().includes(q))
         .slice(0, MAX_TASK_RESULTS)
     : [];
 
@@ -87,7 +92,7 @@ export function GlobalSearch() {
             setIsOpen(true);
           }}
           onKeyDown={handleKeyDown}
-          placeholder="Search project or task ID…"
+          placeholder="Search project, task ID, or title…"
           className="w-full rounded-control border border-line bg-surface py-1.5 pl-8 pr-3 text-sm text-ink-1 placeholder:text-ink-4 focus:border-brand focus:outline-none"
         />
       </div>
