@@ -4,19 +4,8 @@
       "name": "Mohsen Beiranvand",
       "email": "imohsen.b@gmail.com"
     },
-    "timestamp": 1786225693,
-    "op": "CreateTask",
-    "title": "Comments order should be newest first",
-    "kind": "task",
-    "description": "Comments should be sorted and newest should com to top, and comment box should remain at the top"
-  },
-  {
-    "author": {
-      "name": "Mohsen Beiranvand",
-      "email": "imohsen.b@gmail.com"
-    },
-    "timestamp": 1786225693,
-    "op": "SetPriority",
-    "priority": "medium"
+    "timestamp": 1786228140,
+    "op": "SetStatus",
+    "status": "done"
   }
 ]
