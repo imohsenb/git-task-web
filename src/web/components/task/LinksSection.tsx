@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Link2, Plus } from "lucide-react";
 import type { LinkKind, TaskJson } from "../../../shared/contract";
 import { Pill } from "../ui/Pill";
 import { Combobox } from "../ui/Combobox";
@@ -69,32 +70,37 @@ export function LinksSection({ repo, task }: { repo: string; task: TaskJson }) {
       }
     >
       {task.links.length > 0 && (
-        <ul className="mb-2 space-y-1 text-sm">
-          {task.links.map((link) => (
-            <li
-              key={`${link.kind}-${link.target_repo ?? ""}-${link.target_display_id}`}
-              className="flex items-center gap-2 text-ink-2"
-            >
-              <Pill sem="neutral">{link.kind}</Pill>
-              <span className="font-mono text-ink-3">{link.target_display_id}</span>
-              {link.target_repo && (
-                <span className="rounded-pill bg-neutral-tint px-1.5 py-0.5 text-micro text-neutral-ink">
-                  {repoLabel(link.target_repo, registryRepos)}
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={() =>
-                  removeLink.mutate({ kind: link.kind, target: link.target_display_id, targetRepo: link.target_repo ?? undefined })
-                }
-                disabled={removeLink.isPending}
-                className="ml-auto text-ink-4 hover:text-danger-ink"
-                aria-label={`Remove link to ${link.target_display_id}`}
+        <ul className="mb-2 space-y-1.5 text-sm">
+          {task.links.map((link) => {
+            const linkedRepo = link.target_repo ? repoLabel(link.target_repo, registryRepos) : repo;
+            return (
+              <li
+                key={`${link.kind}-${link.target_repo ?? ""}-${link.target_display_id}`}
+                className="flex items-center justify-between gap-2 rounded-control border border-line bg-surface px-2.5 py-1.5 transition-colors hover:bg-surface-sunk"
               >
-                ×
-              </button>
-            </li>
-          ))}
+                <Link
+                  to={`/t/${encodeURIComponent(linkedRepo)}/${encodeURIComponent(link.target_display_id)}`}
+                  className="flex min-w-0 flex-1 items-center gap-2"
+                >
+                  <Link2 size={14} className="shrink-0 text-ink-3" />
+                  <Pill sem="neutral">{link.kind}</Pill>
+                  <span className="shrink-0 font-mono text-micro text-ink-3">{link.target_display_id}</span>
+                  {link.target_repo && <Pill sem="neutral">{repoLabel(link.target_repo, registryRepos)}</Pill>}
+                </Link>
+                <button
+                  type="button"
+                  onClick={() =>
+                    removeLink.mutate({ kind: link.kind, target: link.target_display_id, targetRepo: link.target_repo ?? undefined })
+                  }
+                  disabled={removeLink.isPending}
+                  className="shrink-0 text-ink-4 hover:text-danger-ink"
+                  aria-label={`Remove link to ${link.target_display_id}`}
+                >
+                  ×
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
 
