@@ -1,6 +1,7 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Modal } from "../ui/Modal";
+import { MarkdownEditor } from "../ui/MarkdownEditor";
 import { useCreateTask, type NewTaskInput } from "../../lib/mutations";
 import { useFields, useRepoTasks } from "../../lib/queries";
 import type { Priority, TaskKind } from "../../../shared/contract";
@@ -77,7 +78,7 @@ export function NewTaskDialog({ repo, onClose }: { repo: string; onClose: () => 
   }
 
   return (
-    <Modal title="New task" onClose={onClose} maxWidthClassName="max-w-lg">
+    <Modal title="New task" onClose={onClose} maxWidthClassName="max-w-2xl">
       <form onSubmit={handleSubmit} className="space-y-4">
         <Field label="Title" error={errors.title}>
           <input
@@ -116,12 +117,7 @@ export function NewTaskDialog({ repo, onClose }: { repo: string; onClose: () => 
         </div>
 
         <Field label="Description" error={errors.description}>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={3}
-            className={inputClass(!!errors.description)}
-          />
+          <MarkdownEditor value={description} onChange={setDescription} rows={8} hasError={!!errors.description} />
         </Field>
 
         <div className="grid grid-cols-2 gap-3">
