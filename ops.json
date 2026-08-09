@@ -1,0 +1,22 @@
+[
+  {
+    "author": {
+      "name": "Mohsen Beiranvand",
+      "email": "imohsen.b@gmail.com"
+    },
+    "timestamp": 1786255315,
+    "op": "CreateTask",
+    "title": "Improve the new task dialog",
+    "kind": "bug",
+    "description": "New task dialog is too narrow, it should be wider and the description should support and provide helper + preview for MD format similar to reader.\nAlso the number of visible lines (height) should be atleast doubled"
+  },
+  {
+    "author": {
+      "name": "Mohsen Beiranvand",
+      "email": "imohsen.b@gmail.com"
+    },
+    "timestamp": 1786255315,
+    "op": "SetPriority",
+    "priority": "high"
+  }
+]
