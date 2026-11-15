@@ -3,15 +3,21 @@
 </p>
 <h1 align="center">Git Task</h1>
 
-<p align="center">A local web app for managing tasks tracked in your git repos with <a href="https://github.com/">git-task</a>. Board, list, and table views, milestones, members, and sync, all backed by your own repo. No database, no account, nothing to host.</p>
+<p align="center">A local web app for managing tasks tracked in your git repos with <a href="https://github.com/imohsenb/git-task">git-task</a>. Board, list, and table views, milestones, members, and sync, all backed by your own repo. No database, no account, nothing to host.</p>
 
 <p align="center"><a href="https://www.npmjs.com/package/git-task-web">npm</a></p>
+
+<p align="center">
+  <img src="docs/screenshots/board.png" alt="Board view" />
+</p>
 
 ## Install
 
 ```sh
 brew install imohsenb/tap/git-task
 ```
+
+This installs the [git-task](https://github.com/imohsenb/git-task) CLI, which fetches and runs this web app for you.
 
 ## Usage
 
@@ -36,15 +42,26 @@ npm install -g git-task-web
 git-task-web
 ```
 
+![Task view with markdown, a table, code and a Mermaid diagram](docs/screenshots/task.png)
+
 ## What you can do
 
-- **Board, List, and Table views**, with filters and search.
+- **Board, List, and Table views**, with filters and search. Drag cards between columns on the board
+  to change status.
+- **Rich markdown** in descriptions and comments: GitHub-flavored tables, task lists, and syntax-highlighted
+  code blocks with a copy button.
+- **Mermaid diagrams**, rendered inline from ```` ```mermaid ```` blocks (flowcharts, sequence diagrams, and more)
+  with pan and zoom.
+- **Write and preview**, edit markdown with a live preview in the new-task and edit dialogs.
+- **Epics and links**, parent epics, plus `blocks` / `relates` / `dup` links between tasks that you can click through.
+- **Development**, open pull requests per repo and per project.
 - **Milestones**, tasks grouped by their milestone.
 - **Members**, a directory of everyone who's shown up as an assignee, reporter, or commenter.
 - **Home**, tasks assigned to you and recent activity, across every repo you've registered.
 - **Sync**, push and pull per repo, with a one-click sync-all.
 - **Live updates**, the UI stays current whether a change came from this app or from `git task` in a
   terminal.
+- **Light and dark themes**.
 
 Keyboard shortcuts: `c` for a new task, `/` to search, `Esc` to close a dialog, arrow keys to move
 around the board.
