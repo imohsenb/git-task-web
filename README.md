@@ -3,15 +3,21 @@
 </p>
 <h1 align="center">Git Task</h1>
 
-<p align="center">A local web app for managing tasks tracked in your git repos with <a href="https://github.com/">git-task</a>. Board, list, and table views, milestones, members, and sync, all backed by your own repo. No database, no account, nothing to host.</p>
+<p align="center">A local web app for managing tasks tracked in your git repos with <a href="https://github.com/imohsenb/git-task">git-task</a>. Board, list, and table views, milestones, members, and sync, all backed by your own repo. No database, no account, nothing to host.</p>
 
 <p align="center"><a href="https://www.npmjs.com/package/git-task-web">npm</a></p>
+
+<p align="center">
+  <img src="docs/screenshots/board.png" alt="Board view" />
+</p>
 
 ## Install
 
 ```sh
 brew install imohsenb/tap/git-task
 ```
+
+This installs the [git-task](https://github.com/imohsenb/git-task) CLI, which fetches and runs this web app for you.
 
 ## Usage
 
@@ -35,6 +41,8 @@ You can also install and run Git Task directly, without going through the `git t
 npm install -g git-task-web
 git-task-web
 ```
+
+![Task view with markdown, a table, code and a Mermaid diagram](docs/screenshots/task.png)
 
 ## What you can do
 
